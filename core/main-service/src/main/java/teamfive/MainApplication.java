@@ -3,6 +3,7 @@ package teamfive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import teamfive.client.StatClient;
@@ -13,7 +14,7 @@ import teamfive.client.StatClient;
         "teamfive.client",
         "dto"
 })
-
+@EnableDiscoveryClient
 @Slf4j
 public class MainApplication {
 
