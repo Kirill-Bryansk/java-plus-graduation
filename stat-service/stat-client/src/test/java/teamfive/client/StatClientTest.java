@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDateTime;
@@ -27,15 +28,17 @@ class StatClientTest {
     @Mock
     private RestClient.RequestHeadersUriSpec requestHeadersUriSpec;
 
+    @Mock
+    private DiscoveryClient discoveryClient;
+
 
     private StatClient statClient;
     private ObjectMapper objectMapper;
-    private final String serverUrl = "http://localhost:9090";
     private final String appName = "ewm-service";
 
     @BeforeEach
     void setUp() {
-        statClient = new StatClient(restClient, serverUrl, appName);
+        statClient = new StatClient(restClient, discoveryClient, appName);
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
     }
