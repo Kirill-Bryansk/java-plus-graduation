@@ -88,9 +88,9 @@ services:
       timeout: 5s
       retries: 5
 
-  # Stat Server - сервис статистики
+  # Stats Server - сервис статистики
   stats-server:
-    build: ./stat-service/stat-server
+    build: ./stat-service/stats-server
     image: stats-server-image
     container_name: stats-server
     ports:
