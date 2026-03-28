@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -11,56 +9,38 @@
 
     <artifactId>gateway-server</artifactId>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
     <dependencies>
-
-
-        <!-- === ЗАВИСИМОСТИ SPRING CLOUD === -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-config</artifactId>
-        </dependency>
-
-        <!-- Spring Cloud Gateway - реактивный API шлюз на основе Spring WebFlux и Project Reactor.
-             Обеспечивает маршрутизацию, фильтрацию и обработку запросов к микросервисам.
-             Используется как единая точка входа в систему (Edge Service). -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-gateway</artifactId>
-        </dependency>
-
-        <!-- Eureka Discovery Client - клиент для регистрации и обнаружения сервисов.
-             Позволяет Gateway динамически находить адреса микросервисов,
-             зарегистрированных в Eureka Server, без жесткой привязки к хостам и портам. -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
-
-        <!-- Circuit Breaker Resilience4j для реактивных приложений (Reactor).
-             Предоставляет механизм Circuit Breaker (автоматический выключатель) для защиты от каскадных сбоев.
-             Reactor-версия специально для работы с WebFlux и Gateway. -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
+            <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
-
-        <!-- Actuator для мониторинга и health checks -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>ru.practicum.gateway.GatewayServer</mainClass>
-                </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>
