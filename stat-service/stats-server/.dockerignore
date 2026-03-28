@@ -1,8 +1,0 @@
-target/
-!target/*.jar
-!target/*-sources.jar
-!target/*-javadoc.jar
-*.log
-.git
-.idea
-*.iml

@@ -3,71 +3,109 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Родительский Spring Boot Starter - обеспечивает управление версиями
-         основных Spring зависимостей и плагинов -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>3.4.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <name>Explore With Me</name>
+    <modules>
+        <module>stats</module>
+        <module>infra</module>
+        <module>core</module>
+        <module>stats</module>
+    </modules>
 
-    <!-- Координаты проекта -->
     <groupId>ru.practicum</groupId>
     <artifactId>explore-with-me</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>pom</packaging> <!-- мультимодульный проект -->
+    <packaging>pom</packaging>
 
-    <!-- Модули проекта: каждый отвечает за свой слой/функциональность -->
-    <modules>
-        <module>stat-service</module>
-        <module>infra</module>
-        <module>core</module>
-    </modules>
-
-    <!-- Управление версиями -->
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <avro.version>1.11.3</avro.version>
+        <kafka-clients.version>3.6.1</kafka-clients.version>
+        <springdoc-openapi-starter.version>2.6.0</springdoc-openapi-starter.version>
+        <grpc-spring-boot-starter.version>3.1.0.RELEASE</grpc-spring-boot-starter.version>
+        <protobuf.version>3.19.2</protobuf.version>
+        <grpc.version>1.54.1</grpc.version>
+        <lombok.version>1.18.38</lombok.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <lombok.version>1.18.32</lombok.version>
-        <lombok-binding.version>0.2.0</lombok-binding.version>
-        <zalando.version>3.9.0</zalando.version>
-        <spring-cloud-dependencies.version>2023.0.3</spring-cloud-dependencies.version>
-    </properties>
+        <spring-cloud-dependencies.version>2024.0.1</spring-cloud-dependencies.version>
 
-    <!--
-        Управление зависимостями (dependencyManagement). Здесь указываются версии
-        артефактов, которые могут быть использованы в дочерних модулях.
-        Это не добавляет зависимости, а только задаёт версии, чтобы в модулях
-        можно было указывать <groupId> и <artifactId> без версии.
-        Размещаем это перед <build>, чтобы гарантировать, что версии определены
-        до того, как плагины начнут обработку.
-    -->
+        <!--       Plugins       -->
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <avro-maven-plugin.version>${avro.version}</avro-maven-plugin.version>
+        <protobuf-plugin.version>2.4.0</protobuf-plugin.version>
+    </properties>
     <dependencyManagement>
         <dependencies>
-            <!-- MapStruct: генерация мапперов во время компиляции -->
+            <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>${avro.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka-clients.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc-openapi-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-mapstruct-binding</artifactId>
+                <version>${lombok-mapstruct-binding.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
                 <version>${mapstruct.version}</version>
             </dependency>
-            <!-- Lombok: уменьшение бойлерплейт-кода -->
+
             <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-                <scope>provided</scope>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
             </dependency>
-            <!-- Logbook: логирование HTTP запросов/ответов -->
+
+            <!--    GRPC dependencies management        -->
             <dependency>
-                <groupId>org.zalando</groupId>
-                <artifactId>logbook-spring-boot-starter</artifactId>
-                <version>${zalando.version}</version>
+                <groupId>net.devh</groupId>
+                <artifactId>grpc-spring-boot-starter</artifactId>
+                <version>${grpc-spring-boot-starter.version}</version>
             </dependency>
-            <!-- Spring Cloud BOM - управление версиями cloud компонентов -->
+
+            <dependency>
+                <groupId>net.devh</groupId>
+                <artifactId>grpc-server-spring-boot-starter</artifactId>
+                <version>${grpc-spring-boot-starter.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-stub</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-protobuf</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -78,52 +116,21 @@
         </dependencies>
     </dependencyManagement>
 
-    <!--
-        Управление конфигурацией плагинов (pluginManagement).
-        Здесь описываются настройки плагинов, которые будут использоваться
-        как в корневом проекте, так и в дочерних модулях.
-        Это позволяет избежать дублирования конфигураций.
-    -->
     <build>
         <pluginManagement>
             <plugins>
-                <!--
-                    Плагин компилятора. Настроен для работы с Lombok и MapStruct.
-                    Аннотационные процессоры указаны в annotationProcessorPaths,
-                    чтобы они применялись автоматически при компиляции всех модулей.
-                    Это критически важно, иначе MapStruct не сгенерирует мапперы,
-                    а Lombok не создаст геттеры/сеттеры.
-                    Размещён в pluginManagement, чтобы не пришлось повторять настройки
-                    в каждом дочернем модуле.
-                -->
                 <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
                     <configuration>
-                        <annotationProcessorPaths>
-                            <path>
+                        <excludes>
+                            <exclude>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
-                                <version>${lombok.version}</version>
-                            </path>
-                            <path>
-                                <groupId>org.mapstruct</groupId>
-                                <artifactId>mapstruct-processor</artifactId>
-                                <version>${mapstruct.version}</version>
-                            </path>
-                            <path>
-                                <groupId>org.projectlombok</groupId>
-                                <artifactId>lombok-mapstruct-binding</artifactId>
-                                <version>${lombok-binding.version}</version>
-                            </path>
-                        </annotationProcessorPaths>
+                            </exclude>
+                        </excludes>
                     </configuration>
                 </plugin>
-
-                <!--
-                    Плагин для выполнения тестов. Устанавливает активный профиль Spring
-                    на 'test', чтобы тесты использовали правильные конфигурации.
-                -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -133,11 +140,6 @@
                         </systemPropertyVariables>
                     </configuration>
                 </plugin>
-                <!--
-                    Checkstyle: проверка стиля кода. Конфигурация взята из шаблона,
-                    ссылается на файл checkstyle.xml в корне проекта.
-                    Выполняется на фазе compile, чтобы выявлять нарушения на ранней стадии.
-                -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
@@ -164,8 +166,6 @@
                         </dependency>
                     </dependencies>
                 </plugin>
-                <!--SpotBugs: статический анализ кода на поиск потенциальных ошибок.
-                Настроен на максимальную детализацию и высокий порог.-->
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin</artifactId>
@@ -182,11 +182,6 @@
                         </execution>
                     </executions>
                 </plugin>
-                <!--
-                    JaCoCo: анализ покрытия кода тестами.
-                    Конфигурация задаёт минимальные пороги покрытия.
-                    Если пороги не достигнуты, сборка не пройдёт.
-                -->
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
@@ -255,52 +250,38 @@
                         </execution>
                     </executions>
                 </plugin>
-
-                <!-- Spring Boot Maven Plugin - для сборки исполняемых JAR -->
                 <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <source>21</source>
+                        <target>21</target>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>${lombok-mapstruct-binding.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
     </build>
-    <!--
-           Maven профили. Позволяют выполнять специфичные задачи:
-           - профиль "check" запускает checkstyle и spotbugs.
-           - профиль "coverage" генерирует отчёт JaCoCo.
-           Эти профили не активируются по умолчанию, их нужно явно указывать:
-           mvn clean verify -Pcheck
-       -->
     <profiles>
-        <!-- Профиль для CI/CD - отключает проверки кода для ускорения сборки -->
-        <profile>
-            <id>ci</id>
-            <activation>
-                <property>
-                    <name>env.CI</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <properties>
-                <checkstyle.skip>true</checkstyle.skip>
-                <spotbugs.skip>true</spotbugs.skip>
-                <jacoco.skip>true</jacoco.skip>
-            </properties>
-        </profile>
         <profile>
             <id>check</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-checkstyle-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>com.github.spotbugs</groupId>
-                        <artifactId>spotbugs-maven-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
             <reporting>
                 <plugins>
                     <plugin>
