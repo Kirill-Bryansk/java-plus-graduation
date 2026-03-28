@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: stat-server
+    name: stats-server
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5431/statdb}
     username: ${SPRING_DATASOURCE_USERNAME:user}
