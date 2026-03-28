@@ -61,6 +61,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>ru.practicum.gateway.GatewayServer</mainClass>
+                    <finalName>gateway-server</finalName>
                 </configuration>
                 <executions>
                     <execution>
@@ -71,6 +72,7 @@
                 </executions>
             </plugin>
         </plugins>
+        <finalName>gateway-server</finalName>
     </build>
 
 </project>

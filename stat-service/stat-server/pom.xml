@@ -88,6 +88,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>teamfive.StatServer</mainClass>
+                    <finalName>stats-server</finalName>
                 </configuration>
                 <executions>
                     <execution>
@@ -106,6 +107,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
         </plugins>
+        <finalName>stats-server</finalName>
     </build>
 
 </project>

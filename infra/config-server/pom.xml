@@ -36,6 +36,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>ru.practicum.config.ConfigServer</mainClass>
+                    <finalName>config-server</finalName>
                 </configuration>
                 <executions>
                     <execution>
@@ -46,5 +47,6 @@
                 </executions>
             </plugin>
         </plugins>
+        <finalName>config-server</finalName>
     </build>
 </project>

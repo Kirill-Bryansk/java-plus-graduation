@@ -29,6 +29,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>ru.practicum.discovery.DiscoveryServer</mainClass>
+                    <finalName>discovery-server</finalName>
                 </configuration>
                 <executions>
                     <execution>
@@ -39,5 +40,6 @@
                 </executions>
             </plugin>
         </plugins>
+        <finalName>discovery-server</finalName>
     </build>
 </project>

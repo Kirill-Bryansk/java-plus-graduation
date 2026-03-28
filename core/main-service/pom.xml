@@ -96,6 +96,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>teamfive.MainApplication</mainClass>
+                    <finalName>main-service</finalName>
                 </configuration>
                 <executions>
                     <execution>
@@ -114,6 +115,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
         </plugins>
+        <finalName>main-service</finalName>
     </build>
 
 </project>
