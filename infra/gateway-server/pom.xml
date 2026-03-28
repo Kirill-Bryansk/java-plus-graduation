@@ -53,26 +53,14 @@
 
     <build>
         <plugins>
-            <!-- Плагин Spring Boot для сборки исполняемого JAR/WAR.
-                 Позволяет упаковать приложение со всеми зависимостями в "толстый" (fat) JAR
-                 и запускать через java -jar target/gateway.jar -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>ru.practicum.gateway.GatewayServer</mainClass>
-                    <finalName>gateway-server</finalName>
                 </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
-        <finalName>gateway-server</finalName>
     </build>
 
 </project>

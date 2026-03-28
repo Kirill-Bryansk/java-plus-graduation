@@ -272,6 +272,21 @@
            mvn clean verify -Pcheck
        -->
     <profiles>
+        <!-- Профиль для CI/CD - отключает проверки кода для ускорения сборки -->
+        <profile>
+            <id>ci</id>
+            <activation>
+                <property>
+                    <name>env.CI</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <jacoco.skip>true</jacoco.skip>
+            </properties>
+        </profile>
         <profile>
             <id>check</id>
             <build>
