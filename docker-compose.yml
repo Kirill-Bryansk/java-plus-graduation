@@ -1,17 +1,60 @@
 services:
-  stats-server:
+  # Eureka Discovery Server - регистрация и обнаружение сервисов
+  discovery-server:
+    build: ./infra/discovery-server
+    image: discovery-server-image
+    container_name: discovery-server
     ports:
-      - "9090:9090"
-    build: ./stat-service/stat-server
-    image: stats-server-image
-    container_name: stats-server
-    depends_on:
-      - stats-db
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/statdb
-      - SPRING_DATASOURCE_USERNAME=user
-      - SPRING_DATASOURCE_PASSWORD=user
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
+  # Config Server - централизованное управление конфигурациями
+  config-server:
+    build: ./infra/config-server
+    image: config-server-image
+    container_name: config-server
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    environment:
+      - SPRING_APPLICATION_NAME=config-server
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/eureka/apps/CONFIG-SERVER || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Gateway Server - API шлюз
+  gateway-server:
+    build: ./infra/gateway-server
+    image: gateway-server-image
+    container_name: gateway-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    environment:
+      - SPRING_APPLICATION_NAME=gateway-server
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # Stat Service Database
   stats-db:
     image: postgres:16.1
     container_name: stats-db
@@ -22,21 +65,13 @@ services:
       - POSTGRES_PASSWORD=user
     ports:
       - "5431:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d statdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  main-service:
-    ports:
-      - "8080:8080"
-    build: ./main-service
-    image: main-service-image
-    container_name: main-service
-    depends_on:
-      - stats-server
-      - main-db
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/maindb
-      - SPRING_DATASOURCE_USERNAME=user
-      - SPRING_DATASOURCE_PASSWORD=user
-
+  # Main Service Database
   main-db:
     image: postgres:16.1
     container_name: main-db
@@ -47,4 +82,64 @@ services:
       - POSTGRES_PASSWORD=user
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d maindb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  # Stat Server - сервис статистики
+  stats-server:
+    build: ./stat-service/stat-server
+    image: stats-server-image
+    container_name: stats-server
+    ports:
+      - "9090:9090"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      stats-db:
+        condition: service_healthy
+    environment:
+      - SPRING_APPLICATION_NAME=stat-server
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8080
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/statdb
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=user
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # Main Service - основной сервис
+  main-service:
+    build: ./core/main-service
+    image: main-service-image
+    container_name: main-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      main-db:
+        condition: service_healthy
+    environment:
+      - SPRING_APPLICATION_NAME=main-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8080
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/maindb
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=user
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s

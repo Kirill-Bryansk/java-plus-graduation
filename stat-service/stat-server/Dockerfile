@@ -1,3 +1,4 @@
 FROM amazoncorretto:21
-COPY target/*.jar stats-server.jar
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} stats-server.jar
 ENTRYPOINT ["java", "-jar", "/stats-server.jar"]
