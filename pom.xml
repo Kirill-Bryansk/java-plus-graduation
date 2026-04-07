@@ -19,6 +19,7 @@
         <module>core/request-service</module>
         <module>core/rating-service</module>
         <module>core/event-service</module>
+        <module>core/interaction-api</module>
     </modules>
 
     <groupId>ru.practicum</groupId>
