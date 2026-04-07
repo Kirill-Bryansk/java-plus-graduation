@@ -1,4 +1,4 @@
-package user.dto;
+package ru.practicum.user.dto;
 
 import lombok.AccessLevel;
 import lombok.Getter;

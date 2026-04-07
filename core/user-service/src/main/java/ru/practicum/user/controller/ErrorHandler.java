@@ -1,4 +1,4 @@
-package user.controller;
+package ru.practicum.user.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

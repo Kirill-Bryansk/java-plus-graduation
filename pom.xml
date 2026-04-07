@@ -16,6 +16,7 @@
         <module>core</module>
         <module>stats</module>
         <module>core/user-service</module>
+        <module>core/request-service</module>
     </modules>
 
     <groupId>ru.practicum</groupId>
