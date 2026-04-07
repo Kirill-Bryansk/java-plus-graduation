@@ -14,8 +14,8 @@ spring:
   datasource:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://localhost:6541/stats
-    username: stats
-    password: stats
+    username: user
+    password: password
 
 logging:
   level:

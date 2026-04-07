@@ -6,7 +6,7 @@ services:
     ports:
       - "6541:5432"
     environment:
-      - POSTGRES_PASSWORD=stats
+      - POSTGRES_PASSWORD=password
       - POSTGRES_USER=user
       - POSTGRES_DB=stats
     healthcheck:
