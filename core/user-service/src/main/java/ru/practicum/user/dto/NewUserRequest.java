@@ -9,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class NewUserRequest {

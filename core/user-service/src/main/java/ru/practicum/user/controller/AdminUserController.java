@@ -15,6 +15,9 @@ import ru.practicum.user.service.UserService;
 
 import java.util.List;
 
+/**
+ * Административный контроллер пользователей.
+ */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -22,11 +25,15 @@ import java.util.List;
 public class AdminUserController {
     private final UserService userService;
 
+    /**
+     * Получить список пользователей.
+     */
     @GetMapping
     @Validated
     public List<UserDto> getAllUsers(@RequestParam(required = false) List<Long> ids,
                                      @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
                                      @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) {
+        log.debug("GET: Запрос на получение пользователей: ids={}, from={}, size={}", ids, from, size);
         UserAdminParam params = new UserAdminParam();
         params.setFrom(from);
         params.setSize(size);
@@ -34,15 +41,23 @@ public class AdminUserController {
         return userService.getAllUsers(params);
     }
 
+    /**
+     * Создать пользователя.
+     */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@RequestBody @Valid NewUserRequest newUserRequest) {
+        log.debug("POST: Запрос на создание пользователя: {}", newUserRequest);
         return userService.createUser(newUserRequest);
     }
 
+    /**
+     * Удалить пользователя.
+     */
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable long userId) {
+        log.debug("DELETE: Запрос на удаление пользователя с id: {}", userId);
         userService.deleteUser(userId);
     }
 }

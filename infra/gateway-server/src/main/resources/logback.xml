@@ -4,8 +4,8 @@
             <pattern>%d{HH:mm:ss} %highlight(%-5level) [%thread] %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-
-    <logger name="ru.yandex.practicum" level="DEBUG"/> // TRACE для отображения заголовков
+    <!-- Для отображения заголовков запроса установи уровень TRACE -->
+    <logger name="ru.yandex.practicum" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
