@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Слушатель событий Eureka-сервера.
- * <p>
  * Отслеживает ключевые события жизненного цикла сервера и реестра,
  * а также регистрацию/отключение клиентов, выводя информацию в лог.
  */
@@ -25,7 +24,7 @@ public class EurekaRussianEventListener {
      */
     @EventListener
     public void onStart(EurekaServerStartedEvent event) {
-        log.info("✅ Eureka-сервер запущен");
+        log.debug("-----------Eureka-сервер запущен-----------");
     }
 
     /**
@@ -35,7 +34,7 @@ public class EurekaRussianEventListener {
      */
     @EventListener
     public void onRegistryAvailable(EurekaRegistryAvailableEvent event) {
-        log.info("📋 Реестр Eureka доступен для регистрации клиентов");
+        log.debug("-----------Реестр Eureka доступен для регистрации клиентов-----------");
     }
 
     /**
@@ -47,7 +46,12 @@ public class EurekaRussianEventListener {
     @EventListener
     public void onInstanceRegistered(EurekaInstanceRegisteredEvent event) {
         InstanceInfo info = event.getInstanceInfo();
-        log.info("🟢 Клиент зарегистрирован: приложение='{}', хост='{}', порт={}, ID='{}'",
+        log.debug("""
+           Клиент зарегистрирован:
+           приложение = {}
+           хост       = {}
+           порт       = {}
+           ID         = {}""",
                 info.getAppName(), info.getHostName(), info.getPort(), info.getId());
     }
 
@@ -59,6 +63,10 @@ public class EurekaRussianEventListener {
      */
     @EventListener
     public void onInstanceCanceled(EurekaInstanceCanceledEvent event) {
-        log.warn("🔴 Клиент отключился: приложение='{}', ID='{}'", event.getAppName(), event.getServerId());
+        log.debug("""
+          Клиент отключился:
+          приложение = {}
+          ID = {}""",
+                event.getAppName(), event.getServerId());
     }
 }

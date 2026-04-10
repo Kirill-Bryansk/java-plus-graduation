@@ -5,7 +5,7 @@
         </encoder>
     </appender>
 
-    <logger name="ru.yandex.practicum" level="INFO"/>
+    <logger name="ru.yandex.practicum" level="DEBUG"/>
     <logger name="org.springframework.cloud.netflix.eureka" level="INFO"/>
     <logger name="com.netflix.discovery" level="INFO"/>
 
