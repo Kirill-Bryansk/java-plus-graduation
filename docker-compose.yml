@@ -1,5 +1,58 @@
 services:
 
+  # Kafka в режиме KRaft — без Zookeeper, брокер и контроллер в одном контейнере
+  kafka:
+    image: confluentinc/confluent-local:7.4.3
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"      # внешний порт для клиентов (localhost)
+      - "9101:9101"      # JMX для мониторинга
+    environment:
+      KAFKA_BROKER_ID: 1                                # уникальный ID брокера
+      KAFKA_NODE_ID: 1                                  # ID узла в KRaft-кворуме
+      # Адреса, которые Kafka объявляет клиентам: внутренний и внешний
+      KAFKA_ADVERTISED_LISTENERS:
+        PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      # Маппинг имён листенеров на протоколы безопасности
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP:
+        PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      # Листенер для общения между брокерами
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Листенер для контроллера (KRaft)
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # На каких интерфейсах слушать: брокер, внешний, контроллер
+      KAFKA_LISTENERS:
+        PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093
+      # Состав кворума: node 1 на kafka:29093
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      # Роль: и брокер, и контроллер
+      KAFKA_PROCESS_ROLES: broker,controller
+      # Репликация системных топиков — 1 (одна нода)
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # Не создавать топики автоматически — только явно
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # Не задерживать rebalance группы потребителей
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CLUSTER_ID: K0EA9p0yEe6MkAAAAkKsEg     # фиксированный ID кластера для KRaft
+
+  # Одноразовый контейнер: создаёт нужные топики после запуска Kafka
+  kafka-init-topics:
+    image: confluentinc/confluent-local:7.4.3
+    container_name: kafka-init-topics
+    depends_on:
+      - kafka
+    command: >
+      bash -c '                                                                    
+        kafka-topics --create --topic stats.user-actions.v1 --partitions 1         
+        --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092 &&           
+        kafka-topics --create --topic stats.events-similarity.v1 --partitions 1    
+        --replication-factor 1 --if-not-exists --bootstrap-server kafka:29092              
+      '                                                                            
+
+  # База данных для stats-сервисов
   stats-db:
     image: postgres:16.1
     container_name: stats-db
@@ -15,6 +68,7 @@ services:
       interval: 5s
       retries: 10
 
+  # База данных для core-сервисов (event, user, request, rating)
   ewm-db:
     image: postgres:16.1
     container_name: ewm-db
