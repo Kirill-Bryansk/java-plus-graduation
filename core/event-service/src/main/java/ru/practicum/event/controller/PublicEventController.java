@@ -34,6 +34,8 @@ public class PublicEventController {
                                       @RequestParam(required = false) EventPublicParam.EventSort sort,
                                       @RequestParam(defaultValue = "0") int from,
                                       @RequestParam(defaultValue = "10") int size, HttpServletRequest request) {
+        log.debug("GET: Запрос на получение публичных событий: text={}, categories={}, paid={}, rangeStart={}, rangeEnd={}, onlyAvailable={}, sort={}, from={}, size={}",
+                text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
         String clientIp = request.getRemoteAddr();
         String requestUri = request.getRequestURI();
         EventPublicParam eventPublicParam = new EventPublicParam();
@@ -53,6 +55,7 @@ public class PublicEventController {
 
     @GetMapping("/{id}")
     public EventFullDto getById(@PathVariable long id, HttpServletRequest request) {
+        log.debug("GET: Запрос на получение публичного события с id: {}", id);
         String clientIp = request.getRemoteAddr();
         String requestUri = request.getRequestURI();
         return eventService.getByIdPublic(id, new StatDto("ewm-main-service", requestUri, clientIp,

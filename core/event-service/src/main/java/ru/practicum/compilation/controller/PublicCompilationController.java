@@ -24,6 +24,7 @@ public class PublicCompilationController {
             @RequestParam(defaultValue = "false") String pinned,
             @RequestParam(defaultValue = "0") int from,
             @Positive @RequestParam(defaultValue = "10") int size) {
+        log.debug("GET: Запрос на получение подборок: pinned={}, from={}, size={}", pinned, from, size);
         CompilationParam param = new CompilationParam();
         param.setIsPinned(Boolean.valueOf(pinned));
         param.setFrom(from);
@@ -33,6 +34,7 @@ public class PublicCompilationController {
 
     @GetMapping("/{compId}")
     public ResponseEntity<CompilationDto> getCompilationById(@PathVariable long compId) {
+        log.debug("GET: Запрос на получение подборки с id: {}", compId);
         return ResponseEntity.status(HttpStatus.OK).body(compilationService.getCompilationById(compId));
     }
 }

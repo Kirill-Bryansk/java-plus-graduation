@@ -53,33 +53,44 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventFullDto add(EventNewDto newEvent, long userId) {
+        log.info("Создание события: userId={}, annotation={}", userId, newEvent.getAnnotation());
         LocalDateTime eventDate = newEvent.getEventDate();
         if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
             throw new ForbiddenException("Начало события ранее, чем через два часа: " + eventDate);
         }
         UserShortDto user = userClient.getById(userId);
         Event event = saveEvent(newEvent, userId);
-        return eventMapper.toFullDto(event, user);
+        EventFullDto result = eventMapper.toFullDto(event, user);
+        log.info("Событие создано с id={}, состояние={}", result.getId(), result.getState());
+        return result;
     }
 
     @Override
     public List<EventShortDto> getAllByUser(long userId, Pageable pageable) {
+        log.info("Получение событий пользователя: userId={}, from={}, size={}", userId, pageable.getPageNumber(), pageable.getPageSize());
         List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable);
         events = applyConfirmedRequestsToEvents(events);
-        return mapToShortDtos(events);
+        List<EventShortDto> result = mapToShortDtos(events);
+        log.info("Получено {} событий для userId={}", result.size(), userId);
+        return result;
     }
 
     @Override
     public EventFullDto getByIdPrivate(long eventId, long userId) {
+        log.info("Получение события (приватное): eventId={}, userId={}", eventId, userId);
         Event event = findByIdAndInitiatorId(eventId, userId);
         applyConfirmedRequestsToEvent(event);
         UserShortDto user = userClient.getById(userId);
-        return eventMapper.toFullDto(event, user);
+        EventFullDto result = eventMapper.toFullDto(event, user);
+        log.info("Событие найдено: id={}, состояние={}", result.getId(), result.getState());
+        return result;
     }
 
     @Override
     @Transactional
     public EventFullDto updatePrivate(long userId, long eventId, EventUserUpdateDto eventUpdate) {
+        log.info("Обновление события (приватное): userId={}, eventId={}, stateAction={}",
+                userId, eventId, eventUpdate.getStateAction());
         Event event = findByIdAndInitiatorId(eventId, userId);
 
         boolean isPublished = event.getState() == EventState.PUBLISHED;
@@ -112,13 +123,15 @@ public class EventServiceImpl implements EventService {
         Event updated = eventMapper.toEventFromEventUserUpdateDto(eventUpdate, event);
         updated = eventRepository.save(updated);
         UserShortDto user = userClient.getById(updated.getInitiatorId());
-
-        return eventMapper.toFullDto(updated, user);
+        EventFullDto result = eventMapper.toFullDto(updated, user);
+        log.info("Событие обновлено: id={}, новое состояние={}", result.getId(), result.getState());
+        return result;
     }
 
     @Override
     @Transactional
     public EventFullDto updateAdmin(long eventId, EventAdminUpdateDto eventUpdate) {
+        log.info("Обновление события (админ): eventId={}, stateAction={}", eventId, eventUpdate.getStateAction());
         Event event = findById(eventId);
 
         EventAdminUpdateDto.StateAction stateAction = eventUpdate.getStateAction();
@@ -138,11 +151,15 @@ public class EventServiceImpl implements EventService {
         Event updated = eventMapper.toEventFromEventAdminUpdateDto(eventUpdate, event);
         UserShortDto user = userClient.getById(updated.getInitiatorId());
         updated = eventRepository.save(updated);
-        return eventMapper.toFullDto(updated, user);
+        EventFullDto result = eventMapper.toFullDto(updated, user);
+        log.info("Событие обновлено (админ): id={}, новое состояние={}", result.getId(), result.getState());
+        return result;
     }
 
     @Override
     public List<EventFullDto> getAllByAdmin(EventAdminParam params) {
+        log.info("Получение событий (админ): users={}, states={}, categories={}, rangeStart={}, rangeEnd={}",
+                params.getUsers(), params.getStates(), params.getCategories(), params.getRangeStart(), params.getRangeEnd());
         List<Long> users = params.getUsers();
         BooleanExpression byUsers = (users != null && !users.isEmpty())
                 ? QEvent.event.initiatorId.in(users) : null;
@@ -166,11 +183,15 @@ public class EventServiceImpl implements EventService {
 
         events = applyConfirmedRequestsToEvents(events);
 
-        return eventMapper.toEventFullDtoList(events);
+        List<EventFullDto> result = eventMapper.toEventFullDtoList(events);
+        log.info("Получено {} событий (админ)", result.size());
+        return result;
     }
 
     @Override
     public List<EventShortDto> getAllPublic(EventPublicParam params) {
+        log.info("Получение публичных событий: text={}, categories={}, paid={}, onlyAvailable={}, sort={}",
+                params.getText(), params.getCategories(), params.getPaid(), params.getOnlyAvailable(), params.getSort());
         if (params.getRangeEnd() != null && params.getRangeStart() != null &&
                 params.getRangeEnd().isBefore(params.getRangeStart())) {
             throw new ValidationException("Параметр rangeEnd должен быть позже rangeStart");
@@ -207,11 +228,14 @@ public class EventServiceImpl implements EventService {
             events = filterByAvailability(events);
         }
 
-        return mapToShortDtos(events);
+        List<EventShortDto> result = mapToShortDtos(events);
+        log.info("Получено {} публичных событий", result.size());
+        return result;
     }
 
     @Override
     public EventFullDto getByIdPublic(long eventId, StatDto statDto) {
+        log.info("Получение публичного события: eventId={}", eventId);
         Event event = findById(eventId);
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new NotFoundException("Событие с id: " + eventId + " не найдено");
@@ -227,7 +251,7 @@ public class EventServiceImpl implements EventService {
         }
 
         statsClient.hit(statDto);
-
+        log.info("Публичное событие возвращено: id={}, views={}", eventFullDto.getId(), eventFullDto.getViews());
         return eventFullDto;
     }
 

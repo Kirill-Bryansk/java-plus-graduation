@@ -25,6 +25,7 @@ public class PublicEventSearchController {
     @GetMapping
     public List<EventShortDto> searchByRating(
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit) {
+        log.debug("GET: Запрос на поиск популярных событий: limit={}", limit);
         EventSearchByRatingParam param = new EventSearchByRatingParam();
         param.setLimit(limit);
         return eventSearchService.searchMostLikedEvents(param);

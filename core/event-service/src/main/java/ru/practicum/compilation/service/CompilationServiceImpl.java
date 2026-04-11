@@ -34,25 +34,32 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     @Transactional
     public CompilationDto createCompilation(NewCompilationDto newCompilationDto) {
+        log.info("Создание подборки: title={}, events={}", newCompilationDto.getTitle(), newCompilationDto.getEvents());
         List<Event> eventList = eventService.getAllByIds(newCompilationDto.getEvents());
         Compilation compilation = compilationMapper.toCompilation(newCompilationDto);
         compilation.setEvents(eventList);
         compilationRepository.save(compilation);
-        return mapToDto(compilation);
+        CompilationDto result = mapToDto(compilation);
+        log.info("Подборка создана с id={}", result.getId());
+        return result;
     }
 
     @Override
     @Transactional
     public void deleteCompilation(long compId) {
+        log.info("Удаление подборки: compId={}", compId);
         if (!compilationRepository.existsById(compId)) {
             throw new NotFoundException("Compilation with id = " + compId + " not found.");
         }
         compilationRepository.deleteById(compId);
+        log.info("Подборка с id={} удалена", compId);
     }
 
     @Override
     @Transactional
     public CompilationDto updateCompilation(long compId, UpdateCompilationRequest updateCompilationRequest) {
+        log.info("Обновление подборки: compId={}, pinned={}, title={}",
+                compId, updateCompilationRequest.getPinned(), updateCompilationRequest.getTitle());
         Compilation compilationFromTable = compilationRepository.findById(compId).orElseThrow(() ->
                 new NotFoundException("Compilation with id = " + compId + " not found."));
 
@@ -64,23 +71,31 @@ public class CompilationServiceImpl implements CompilationService {
         if (updateCompilationRequest.getTitle() != null)
             compilationFromTable.setTitle(updateCompilationRequest.getTitle());
         compilationFromTable = compilationRepository.save(compilationFromTable);
-        return mapToDto(compilationFromTable);
+        CompilationDto result = mapToDto(compilationFromTable);
+        log.info("Подборка обновлена: id={}", result.getId());
+        return result;
     }
 
     public List<CompilationDto> getAllCompilations(CompilationParam param) {
+        log.info("Получение подборок: isPinned={}, from={}, size={}", param.getIsPinned(), param.getFrom(), param.getSize());
         Boolean isPinned = param.getIsPinned();
         int from = param.getFrom();
         int size = param.getSize();
 
         List<Compilation> compilations = compilationRepository.findAllByPinned(isPinned, PageRequest.of(from / size, size));
-        return mapToDtoList(compilations);
+        List<CompilationDto> result = mapToDtoList(compilations);
+        log.info("Получено {} подборок", result.size());
+        return result;
     }
 
     @Override
     public CompilationDto getCompilationById(long compId) {
+        log.info("Получение подборки: compId={}", compId);
         Compilation compilation = compilationRepository.findById(compId).orElseThrow(() ->
                 new NotFoundException("Compilation with id = " + compId + " not found."));
-        return mapToDto(compilation);
+        CompilationDto result = mapToDto(compilation);
+        log.info("Подборка найдена: id={}, title={}", result.getId(), result.getTitle());
+        return result;
     }
 
     private List<CompilationDto> mapToDtoList(List<Compilation> compilations) {

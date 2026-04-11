@@ -22,6 +22,7 @@ public class PrivateRatingController {
     public RatingDto add(@PathVariable("userId") long userId,
                          @PathVariable("eventId") long eventId,
                          @RequestBody @Valid NewRatingDto newRatingDto) {
+        log.debug("POST: Запрос на создание оценки: userId={}, eventId={}, {}", userId, eventId, newRatingDto);
         return ratingService.create(userId, eventId, newRatingDto);
     }
 
@@ -31,6 +32,8 @@ public class PrivateRatingController {
                             @PathVariable("eventId") long eventId,
                             @PathVariable("ratingId") long ratingId,
                             @RequestBody @Valid UpdateRatingDto updateRatingDto) {
+        log.debug("PATCH: Запрос на обновление оценки: userId={}, eventId={}, ratingId={}, {}",
+                userId, eventId, ratingId, updateRatingDto);
         return ratingService.update(userId, eventId, ratingId, updateRatingDto);
     }
 
@@ -39,6 +42,7 @@ public class PrivateRatingController {
     public void remove(@PathVariable("userId") long userId,
                        @PathVariable("eventId") long eventId,
                        @PathVariable("ratingId") long ratingId) {
+        log.debug("DELETE: Запрос на удаление оценки: userId={}, eventId={}, ratingId={}", userId, eventId, ratingId);
         ratingService.delete(userId, eventId, ratingId);
     }
 }

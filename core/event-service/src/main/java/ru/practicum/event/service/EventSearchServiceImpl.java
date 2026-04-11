@@ -1,6 +1,7 @@
 package ru.practicum.event.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.client.RatingClient;
@@ -16,6 +17,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class EventSearchServiceImpl implements EventSearchService {
     private final RatingClient ratingClient;
@@ -25,6 +27,7 @@ public class EventSearchServiceImpl implements EventSearchService {
     @Transactional
     @Override
     public List<EventShortDto> searchMostLikedEvents(EventSearchByRatingParam eventSearchByRatingParam) {
+        log.info("Поиск популярных событий: limit={}", eventSearchByRatingParam.getLimit());
         List<Long> eventsIds = ratingClient.getMostLikedEventIds(eventSearchByRatingParam);
         List<Event> events = eventRepository.findAllByIdIn(eventsIds);
 
@@ -36,6 +39,8 @@ public class EventSearchServiceImpl implements EventSearchService {
                 .filter(Objects::nonNull)
                 .toList();
 
-        return eventService.getShortEvents(orderedEvents);
+        List<EventShortDto> result = eventService.getShortEvents(orderedEvents);
+        log.info("Найдено {} популярных событий", result.size());
+        return result;
     }
 }

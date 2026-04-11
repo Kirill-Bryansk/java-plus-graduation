@@ -33,6 +33,8 @@ public class AdminEventController {
                                      @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
                                      @RequestParam(defaultValue = "0") int from,
                                      @RequestParam(defaultValue = "10") int size) {
+        log.debug("GET: Запрос на получение событий (админ): users={}, states={}, categories={}, rangeStart={}, rangeEnd={}, from={}, size={}",
+                users, states, categories, rangeStart, rangeEnd, from, size);
         EventAdminParam eventAdminParam = new EventAdminParam();
         eventAdminParam.setUsers(users);
         eventAdminParam.setStates(states);
@@ -46,6 +48,7 @@ public class AdminEventController {
     @PatchMapping("/{eventId}")
     @ResponseStatus(HttpStatus.OK)
     public EventFullDto update(@PathVariable long eventId, @RequestBody @Valid EventAdminUpdateDto eventUpdate) {
+        log.debug("PATCH: Запрос на обновление события (админ): eventId={}, {}", eventId, eventUpdate);
         return eventService.updateAdmin(eventId, eventUpdate);
     }
 }

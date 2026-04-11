@@ -24,11 +24,13 @@ public class PublicCategoryController {
                                               @PositiveOrZero Integer from,
                                               @RequestParam(name = "size", defaultValue = "10")
                                               @Positive Integer size) {
+        log.debug("GET: Запрос на получение категорий: from={}, size={}", from, size);
         return categoryService.getAllCategories(from, size);
     }
 
     @GetMapping("/{catId}")
     public CategoryDto getCategory(@PathVariable long catId) {
+        log.debug("GET: Запрос на получение категории с id: {}", catId);
         return categoryService.getCategoryById(catId);
     }
 }
