@@ -22,6 +22,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Реализация сервиса подборок событий.
+ * Выполняет CRUD-операции, загрузку связанных событий через EventService
+ * и пагинацию с фильтрацией по закреплённости.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -31,6 +36,13 @@ public class CompilationServiceImpl implements CompilationService {
     private final CompilationMapper compilationMapper;
     private final EventService eventService;
 
+    /**
+     * Создать новую подборку событий.
+     * Загружает события по ID из event-service и связывает с подборкой.
+     *
+     * @param newCompilationDto данные новой подборки
+     * @return CompilationDto созданной подборки
+     */
     @Override
     @Transactional
     public CompilationDto createCompilation(NewCompilationDto newCompilationDto) {
@@ -44,6 +56,12 @@ public class CompilationServiceImpl implements CompilationService {
         return result;
     }
 
+    /**
+     * Удалить подборку по ID.
+     *
+     * @param compId идентификатор подборки
+     * @throws NotFoundException если подборка не найдена
+     */
     @Override
     @Transactional
     public void deleteCompilation(long compId) {
@@ -55,6 +73,15 @@ public class CompilationServiceImpl implements CompilationService {
         log.info("Подборка с id={} удалена", compId);
     }
 
+    /**
+     * Обновить данные подборки: title, pinned и список событий.
+     * Обновляются только переданные поля (null-поля игнорируются).
+     *
+     * @param compId                   идентификатор подборки
+     * @param updateCompilationRequest данные для обновления
+     * @return CompilationDto обновлённой подборки
+     * @throws NotFoundException если подборка не найдена
+     */
     @Override
     @Transactional
     public CompilationDto updateCompilation(long compId, UpdateCompilationRequest updateCompilationRequest) {
@@ -76,6 +103,12 @@ public class CompilationServiceImpl implements CompilationService {
         return result;
     }
 
+    /**
+     * Получить список подборок с пагинацией и фильтром по закреплённости.
+     *
+     * @param param параметры запроса (isPinned, from, size)
+     * @return список CompilationDto
+     */
     public List<CompilationDto> getAllCompilations(CompilationParam param) {
         log.info("Получение подборок: isPinned={}, from={}, size={}", param.getIsPinned(), param.getFrom(), param.getSize());
         Boolean isPinned = param.getIsPinned();
@@ -88,6 +121,13 @@ public class CompilationServiceImpl implements CompilationService {
         return result;
     }
 
+    /**
+     * Получить подборку по ID с загруженными событиями.
+     *
+     * @param compId идентификатор подборки
+     * @return CompilationDto
+     * @throws NotFoundException если подборка не найдена
+     */
     @Override
     public CompilationDto getCompilationById(long compId) {
         log.info("Получение подборки: compId={}", compId);
@@ -98,6 +138,13 @@ public class CompilationServiceImpl implements CompilationService {
         return result;
     }
 
+    /**
+     * Преобразовать список сущностей Compilation в список CompilationDto
+     * с заполненными EventShortDto для каждого события.
+     *
+     * @param compilations список сущностей Compilation
+     * @return список CompilationDto
+     */
     private List<CompilationDto> mapToDtoList(List<Compilation> compilations) {
 
         Set<Event> events = compilations.stream()
@@ -124,6 +171,13 @@ public class CompilationServiceImpl implements CompilationService {
                 .toList();
     }
 
+    /**
+     * Преобразовать одну сущность Compilation в CompilationDto
+     * с заполненными EventShortDto.
+     *
+     * @param compilation сущность Compilation
+     * @return CompilationDto
+     */
     private CompilationDto mapToDto(Compilation compilation) {
         List<EventShortDto> eventsToSet = eventService.getShortEvents(compilation.getEvents());
         CompilationDto compilationDto = compilationMapper.toCompilationDto(compilation);

@@ -11,6 +11,10 @@ import ru.practicum.compilation.dto.NewCompilationDto;
 import ru.practicum.compilation.dto.UpdateCompilationRequest;
 import ru.practicum.compilation.service.CompilationService;
 
+/**
+ * Административный контроллер подборок событий.
+ * Предоставляет endpoints для создания, удаления и обновления подборок.
+ */
 @RestController
 @RequestMapping(path = "/admin/compilations")
 @RequiredArgsConstructor
@@ -18,6 +22,12 @@ import ru.practicum.compilation.service.CompilationService;
 public class AdminCompilationController {
     private final CompilationService compilationService;
 
+    /**
+     * Создать новую подборку событий.
+     *
+     * @param newCompilationDto данные новой подборки (title, pinned, events)
+     * @return ResponseEntity с созданной подборкой в формате CompilationDto
+     */
     @PostMapping
     public ResponseEntity<CompilationDto> createCompilation(@Valid @RequestBody
                                                             NewCompilationDto newCompilationDto) {
@@ -25,6 +35,11 @@ public class AdminCompilationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(compilationService.createCompilation(newCompilationDto));
     }
 
+    /**
+     * Удалить подборку по ID.
+     *
+     * @param compId идентификатор подборки
+     */
     @DeleteMapping("/{compId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCompilation(@PathVariable long compId) {
@@ -32,6 +47,14 @@ public class AdminCompilationController {
         compilationService.deleteCompilation(compId);
     }
 
+    /**
+     * Обновить данные подборки.
+     * Можно обновить title, pinned и список событий.
+     *
+     * @param compId                   идентификатор подборки
+     * @param updateCompilationRequest данные для обновления
+     * @return ResponseEntity с обновлённой подборкой в формате CompilationDto
+     */
     @PatchMapping("/{compId}")
     public ResponseEntity<CompilationDto> updateCompilation(
             @PathVariable long compId,

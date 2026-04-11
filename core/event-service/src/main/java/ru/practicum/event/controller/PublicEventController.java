@@ -15,6 +15,12 @@ import ru.practicum.event.service.EventService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Публичный контроллер событий.
+ * Предоставляет endpoints для просмотра опубликованных событий:
+ * поиск с фильтрацией и получение детальной информации.
+ * Автоматически отправляет запросы в stats-service для учёта просмотров.
+ */
 @RestController
 @RequestMapping(path = "/events")
 @RequiredArgsConstructor
@@ -24,6 +30,23 @@ public class PublicEventController {
     private final EventService eventService;
     private final StatsClientService statsClient;
 
+    /**
+     * Получить список опубликованных событий с фильтрацией и пагинацией.
+     * Фильтры: текстовый поиск, категории, платность, диапазон дат, доступность, сортировка.
+     * Отправляет hit в stats-service для учёта просмотра.
+     *
+     * @param text          текст для поиска (необязательный)
+     * @param categories    список ID категорий (необязательный)
+     * @param paid          платность (true/false, необязательный)
+     * @param rangeStart    начало диапазона дат (необязательный)
+     * @param rangeEnd      конец диапазона дат (необязательный)
+     * @param onlyAvailable только доступные события (необязательный)
+     * @param sort          тип сортировки (необязательный)
+     * @param from          номер первого элемента (по умолчанию 0)
+     * @param size          количество элементов в выборке (по умолчанию 10)
+     * @param request       HTTP-запрос для получения IP и URI
+     * @return список EventShortDto
+     */
     @GetMapping
     public List<EventShortDto> getAll(@RequestParam(required = false) String text,
                                       @RequestParam(required = false) List<Long> categories,
@@ -53,6 +76,14 @@ public class PublicEventController {
         return events;
     }
 
+    /**
+     * Получить полную информацию об опубликованном событии по ID.
+     * Отправляет hit в stats-service для учёта просмотра.
+     *
+     * @param id      идентификатор события
+     * @param request HTTP-запрос для получения IP и URI
+     * @return EventFullDto
+     */
     @GetMapping("/{id}")
     public EventFullDto getById(@PathVariable long id, HttpServletRequest request) {
         log.debug("GET: Запрос на получение публичного события с id: {}", id);

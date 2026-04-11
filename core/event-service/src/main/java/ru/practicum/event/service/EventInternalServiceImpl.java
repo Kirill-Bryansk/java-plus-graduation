@@ -9,6 +9,10 @@ import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
 
+/**
+ * Реализация внутреннего сервиса событий для межсервисного взаимодействия.
+ * Используется rating-service для проверки существования событий.
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -16,6 +20,13 @@ public class EventInternalServiceImpl implements EventInternalService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
 
+    /**
+     * Получить событие по ID для внутреннего использования.
+     *
+     * @param id идентификатор события
+     * @return EventForRequestDto с данными события
+     * @throws NotFoundException если событие не найдено
+     */
     @Override
     public EventForRequestDto getById(Long id) {
         log.info("Получение события (внутреннее): id={}", id);
@@ -26,6 +37,13 @@ public class EventInternalServiceImpl implements EventInternalService {
         return result;
     }
 
+    /**
+     * Проверить, является ли пользователь инициатором события.
+     *
+     * @param userId  идентификатор пользователя
+     * @param eventId идентификатор события
+     * @return true если пользователь — создатель события
+     */
     @Override
     public boolean checkUserIsInitiator(long userId, long eventId) {
         log.info("Проверка инициатора: userId={}, eventId={}", userId, eventId);
@@ -34,6 +52,12 @@ public class EventInternalServiceImpl implements EventInternalService {
         return result;
     }
 
+    /**
+     * Проверить существование события по ID.
+     *
+     * @param id идентификатор события
+     * @throws NotFoundException если событие не найдено
+     */
     @Override
     public void checkExistsById(long id) {
         log.info("Проверка существования события: id={}", id);

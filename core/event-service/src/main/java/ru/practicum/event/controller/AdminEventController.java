@@ -16,6 +16,11 @@ import ru.practicum.event.service.EventService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Административный контроллер событий.
+ * Предоставляет endpoints для администратора: просмотр всех событий
+ * с фильтрацией и обновление данных/статуса событий.
+ */
 @RestController
 @RequestMapping(path = "/admin/events")
 @RequiredArgsConstructor
@@ -24,6 +29,19 @@ public class AdminEventController {
 
     private final EventService eventService;
 
+    /**
+     * Получить список событий с фильтрацией и пагинацией.
+     * Фильтры: по пользователям, статусам, категориям, диапазону дат.
+     *
+     * @param users      список ID пользователей (необязательный)
+     * @param states     список статусов событий (необязательный)
+     * @param categories список ID категорий (необязательный)
+     * @param rangeStart начало диапазона дат (необязательный)
+     * @param rangeEnd   конец диапазона дат (необязательный)
+     * @param from       номер первого элемента (по умолчанию 0)
+     * @param size       количество элементов в выборке (по умолчанию 10)
+     * @return список EventFullDto
+     */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<EventFullDto> getAll(@RequestParam(required = false) List<Long> users,
@@ -45,6 +63,13 @@ public class AdminEventController {
         return eventService.getAllByAdmin(eventAdminParam);
     }
 
+    /**
+     * Обновить событие или изменить его статус (публикация/отклонение).
+     *
+     * @param eventId      идентификатор события
+     * @param eventUpdate  данные для обновления (поля события или stateAction)
+     * @return EventFullDto обновлённого события
+     */
     @PatchMapping("/{eventId}")
     @ResponseStatus(HttpStatus.OK)
     public EventFullDto update(@PathVariable long eventId, @RequestBody @Valid EventAdminUpdateDto eventUpdate) {

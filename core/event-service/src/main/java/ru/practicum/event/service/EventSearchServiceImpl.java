@@ -16,6 +16,11 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Реализация сервиса поиска событий по рейтингу.
+ * Вызывает rating-service через Feign для получения ID самых лайкнутых событий,
+ * затем загружает полные данные о событиях и возвращает в нужном порядке.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -24,6 +29,13 @@ public class EventSearchServiceImpl implements EventSearchService {
     private final EventService eventService;
     private final EventRepository eventRepository;
 
+    /**
+     * Найти самые популярные события по количеству лайков.
+     * Вызывает rating-service через Feign для получения рейтингов.
+     *
+     * @param eventSearchByRatingParam параметры поиска (limit)
+     * @return список EventShortDto, отсортированный по рейтингу
+     */
     @Transactional
     @Override
     public List<EventShortDto> searchMostLikedEvents(EventSearchByRatingParam eventSearchByRatingParam) {

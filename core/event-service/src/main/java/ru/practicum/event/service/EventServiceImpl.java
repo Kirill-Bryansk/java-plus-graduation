@@ -38,6 +38,13 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Реализация сервиса событий.
+ * Выполняет CRUD-операции с событиями, фильтрацию через QueryDSL,
+ * взаимодействие со stats-service для учёта просмотров,
+ * с rating-service для получения рейтингов,
+ * и с user-service для получения данных пользователей.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
