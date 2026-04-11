@@ -17,6 +17,19 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+/**
+ * Глобальный обработчик исключений для request-service.
+ * Перехватывает бизнес-исключения и преобразует их в стандартный ApiError.
+ *
+ * NotFoundException  → 404
+ * ValidationException → 400
+ * DataAlreadyInUseException → 409
+ * ForbiddenException → 403
+ * ConditionsNotMetException → 409
+ * MethodArgumentNotValidException → 400
+ * MissingServletRequestParameterException → 400
+ * Throwable (fallback) → 500
+ */
 @RestControllerAdvice
 @Slf4j
 public class ErrorHandler {

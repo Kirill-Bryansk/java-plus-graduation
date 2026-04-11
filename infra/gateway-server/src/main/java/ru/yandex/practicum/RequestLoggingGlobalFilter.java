@@ -10,6 +10,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+/**
+ * Глобальный фильтр логирования всех входящих запросов через Gateway.
+ * Работает с наивысшим приоритетом (HIGHEST_PRECEDENCE).
+ * В DEBUG-режиме логирует метод, путь, query-параметры и IP клиента.
+ * В TRACE-режиме дополнительно логирует все заголовки запроса.
+ */
 @Component
 public class RequestLoggingGlobalFilter implements GlobalFilter, Ordered {
 

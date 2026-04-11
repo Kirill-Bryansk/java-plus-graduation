@@ -13,6 +13,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+/**
+ * Фильтр логирования запросов к Config Server.
+ * Перехватывает запросы к конфигурации и логирует:
+ * имя приложения, профиль, метку (label) и IP клиента.
+ * Паттерн URL: /{app}/{profile}[/{label}]
+ */
 @Component
 public class ConfigRequestLoggingFilter extends OncePerRequestFilter {
 

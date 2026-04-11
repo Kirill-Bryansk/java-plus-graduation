@@ -1,3 +1,4 @@
+# Фиксированный порт Eureka Server
 server:
   port: 8761
 
@@ -5,7 +6,9 @@ eureka:
   instance:
     hostname: localhost
   client:
+    # Eureka Server не регистрирует сам себя
     registerWithEureka: false
+    # Eureka Server не получает реестр (он его источник)
     fetchRegistry: false
     serviceUrl:
       defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/

@@ -23,6 +23,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Реализация сервиса заявок на участие в событиях.
+ * Выполняет CRUD-операции с заявками, проверяет условия создания заявок
+ * (опубликованность события, уникальность, лимит участников),
+ * и управляет статусами заявок (подтверждение/отклонение) инициатором события.
+ * Взаимодействует с event-service и user-service через Feign-клиенты.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

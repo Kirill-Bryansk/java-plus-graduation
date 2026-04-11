@@ -13,6 +13,12 @@ import ru.practicum.request.service.RequestService;
 
 import java.util.List;
 
+/**
+ * Приватный контроллер заявок на участие в событиях.
+ * Предоставляет endpoints для пользователей: создание заявок на участие,
+ * просмотр своих заявок, отмена заявок, а также управление заявками
+ * для инициаторов событий (просмотр, подтверждение, отклонение).
+ */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +26,13 @@ import java.util.List;
 public class PrivateRequestController {
     private final RequestService requestService;
 
+    /**
+     * Создать заявку на участие в событии.
+     *
+     * @param userId  идентификатор пользователя
+     * @param eventId идентификатор события
+     * @return ParticipationRequestDto созданной заявки
+     */
     @PostMapping("/requests")
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto create(@PathVariable(name = "userId") @Positive long userId,
@@ -28,6 +41,12 @@ public class PrivateRequestController {
         return requestService.createParticipationRequest(userId, eventId);
     }
 
+    /**
+     * Получить все заявки пользователя на участие в событиях.
+     *
+     * @param userId идентификатор пользователя
+     * @return список ParticipationRequestDto
+     */
     @GetMapping("/requests")
     @ResponseStatus(HttpStatus.OK)
     public List<ParticipationRequestDto> getAllByParticipantId(@PathVariable(name = "userId") @Positive long userId) {
@@ -35,6 +54,13 @@ public class PrivateRequestController {
         return requestService.getAllByParticipantId(userId);
     }
 
+    /**
+     * Отменить заявку на участие в событии.
+     *
+     * @param userId   идентификатор пользователя
+     * @param requestId идентификатор заявки
+     * @return ParticipationRequestDto отменённой заявки
+     */
     @PatchMapping("/requests/{requestId}/cancel")
     @ResponseStatus(HttpStatus.OK)
     public ParticipationRequestDto cancelParticipantRequest(@PathVariable(name = "userId") @Positive long userId,
@@ -43,6 +69,13 @@ public class PrivateRequestController {
         return requestService.cancelParticipantRequest(userId, requestId);
     }
 
+    /**
+     * Получить все заявки на участие в событии (только для инициатора события).
+     *
+     * @param userId  идентификатор пользователя-инициатора
+     * @param eventId идентификатор события
+     * @return список ParticipationRequestDto
+     */
     @GetMapping("/events/{eventId}/requests")
     @ResponseStatus(HttpStatus.OK)
     public List<ParticipationRequestDto> getAllEventsOfInitiator(@PathVariable(name = "userId") @Positive long userId,
@@ -51,6 +84,15 @@ public class PrivateRequestController {
         return requestService.getAllByInitiatorIdAndEventId(userId, eventId);
     }
 
+    /**
+     * Изменить статус заявок на участие в событии (подтвердить/отклонить).
+     * Только для инициатора события.
+     *
+     * @param userId        идентификатор пользователя-инициатора
+     * @param eventId       идентификатор события
+     * @param updateRequest данные для обновления (список ID заявок и новый статус)
+     * @return EventRequestStatusUpdateResult с результатами подтверждения и отклонения
+     */
     @PatchMapping("/events/{eventId}/requests")
     @ResponseStatus(HttpStatus.OK)
     public EventRequestStatusUpdateResult changeRequestsStatus(@PathVariable(name = "userId") @Positive long userId,

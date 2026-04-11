@@ -1,22 +1,27 @@
+# Случайный порт при запуске
 server:
   port: 0
 
 spring:
   jpa:
     hibernate:
+      # Не обновлять схему автоматически
       ddl-auto: none
     properties:
       hibernate:
         format_sql: true
   sql:
     init:
+      # Всегда выполнять schema.sql при запуске
       mode: always
   datasource:
     driverClassName: org.postgresql.Driver
+    # Подключение к отдельной БД для статистики
     url: jdbc:postgresql://localhost:6541/stats
     username: user
     password: password
 
+# Логирование SQL-запросов
 logging:
   level:
     org.hibernate.SQL: DEBUG
