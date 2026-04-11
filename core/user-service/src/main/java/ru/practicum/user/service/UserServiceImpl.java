@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 /**
  * Реализация сервиса пользователей.
+ * Выполняет CRUD-операции, валидацию данных и пагинацию.
  */
 @Service
 @Slf4j
@@ -32,7 +33,11 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     /**
-     * Получить список пользователей с пагинацией и фильтром по ids.
+     * Получить список пользователей с пагинацией и фильтрацией по IDs.
+     * Если IDs не указаны — возвращает всех пользователей.
+     *
+     * @param param параметры запроса (from, size, ids)
+     * @return список UserDto
      */
     @Override
     public List<UserDto> getAllUsers(UserAdminParam param) {
@@ -52,7 +57,11 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Получить карту пользователей по списку id (для внутренних вызовов).
+     * Получить карту пользователей по списку ID.
+     * Используется при межсервисных вызовах (Feign).
+     *
+     * @param userIds список идентификаторов
+     * @return Map<ID, UserShortDto> найденных пользователей
      */
     @Override
     public Map<Long, UserShortDto> getAllUsersByIds(List<Long> userIds) {
@@ -68,7 +77,11 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Получить краткую информацию о пользователе по id.
+     * Получить краткую информацию о пользователе по ID.
+     *
+     * @param id идентификатор пользователя
+     * @return UserShortDto
+     * @throws NotFoundException если пользователь не найден
      */
     @Override
     public UserShortDto getById(Long id) {
@@ -78,7 +91,10 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Проверить существование пользователя.
+     * Проверить существование пользователя по ID.
+     *
+     * @param id идентификатор пользователя
+     * @throws NotFoundException если пользователь не найден
      */
     @Override
     public void checkUserExists(Long id) {
@@ -90,6 +106,12 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Создать нового пользователя.
+     * Проверяет уникальность email и корректность длины полей.
+     *
+     * @param newUserRequest данные нового пользователя
+     * @return UserDto созданного пользователя
+     * @throws ValidationException если длина полей некорректна
+     * @throws DataAlreadyInUseException если email уже занят
      */
     @Override
     @Transactional
@@ -110,7 +132,10 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Удалить пользователя по id.
+     * Удалить пользователя по ID.
+     *
+     * @param userId идентификатор пользователя
+     * @throws NotFoundException если пользователь не найден
      */
     @Override
     @Transactional
@@ -124,6 +149,10 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Вспомогательный метод: найти пользователя или выбросить NotFoundException.
+     *
+     * @param userId идентификатор пользователя
+     * @return найденный User
+     * @throws NotFoundException если пользователь не найден
      */
     private User findById(long userId) {
         User user = userRepository.findById(userId).orElseThrow(() ->

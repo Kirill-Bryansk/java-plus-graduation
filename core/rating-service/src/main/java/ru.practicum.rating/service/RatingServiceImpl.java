@@ -30,8 +30,6 @@ public class RatingServiceImpl implements RatingService {
     @Override
     @Transactional
     public RatingDto create(long userId, long eventId, NewRatingDto newRatingDto) {
-        log.info("Начало создания оценки: userId={}, eventId={}, mark={}", userId, eventId, newRatingDto.getMark());
-
         boolean exists = ratingRepository.existsByUserIdAndEventId(userId, eventId);
         if (exists) {
             log.warn("Пользователь {} уже оценивал событие {}", userId, eventId);

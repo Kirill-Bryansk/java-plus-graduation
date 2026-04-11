@@ -17,6 +17,8 @@ import java.util.List;
 
 /**
  * Административный контроллер пользователей.
+ * Предоставляет endpoints для создания, удаления и поиска пользователей
+ * с поддержкой пагинации и фильтрации по ID.
  */
 @Slf4j
 @RestController
@@ -26,7 +28,12 @@ public class AdminUserController {
     private final UserService userService;
 
     /**
-     * Получить список пользователей.
+     * Получить список пользователей с пагинацией и фильтрацией.
+     *
+     * @param ids  список идентификаторов для фильтрации (необязательный)
+     * @param from номер первого элемента (по умолчанию 0)
+     * @param size количество элементов в выборке (по умолчанию 10)
+     * @return список пользователей в формате UserDto
      */
     @GetMapping
     @Validated
@@ -42,7 +49,11 @@ public class AdminUserController {
     }
 
     /**
-     * Создать пользователя.
+     * Создать нового пользователя.
+     * Проверяет корректность входных данных и уникальность email.
+     *
+     * @param newUserRequest данные нового пользователя (name, email)
+     * @return созданный пользователь в формате UserDto
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -52,7 +63,9 @@ public class AdminUserController {
     }
 
     /**
-     * Удалить пользователя.
+     * Удалить пользователя по ID.
+     *
+     * @param userId идентификатор пользователя
      */
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

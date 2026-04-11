@@ -12,6 +12,8 @@ import java.util.Map;
 
 /**
  * Внутренний контроллер для вызовов между сервисами (Feign).
+ * Предоставляет endpoints для получения пользователей другими микросервисами
+ * (event-service, rating-service). Не предназначен для внешних вызовов.
  */
 @Slf4j
 @RestController
@@ -22,7 +24,11 @@ public class InternalUserController implements UserOperations {
     private final UserService userService;
 
     /**
-     * Получить карту пользователей по списку id.
+     * Получить карту пользователей по списку ID.
+     * Используется Feign-клиентами для массовой загрузки пользователей.
+     *
+     * @param userIds список идентификаторов пользователей
+     * @return Map<ID, UserShortDto> найденных пользователей
      */
     @PostMapping
     public Map<Long, UserShortDto> getAllUsersByIds(@RequestBody List<Long> userIds) {
@@ -33,7 +39,10 @@ public class InternalUserController implements UserOperations {
     }
 
     /**
-     * Получить одного пользователя по id.
+     * Получить одного пользователя по ID.
+     *
+     * @param id идентификатор пользователя
+     * @return UserShortDto с краткой информацией о пользователе
      */
     @GetMapping("/{id}")
     public UserShortDto getById(@PathVariable Long id) {
@@ -43,6 +52,10 @@ public class InternalUserController implements UserOperations {
 
     /**
      * Проверить существование пользователя.
+     * Возвращает 200 если пользователь найден, 404 если нет.
+     * Используется другими сервисами для валидации перед операциями.
+     *
+     * @param id идентификатор пользователя
      */
     @GetMapping("/check/{id}")
     public void checkUserExists(@PathVariable Long id) {
