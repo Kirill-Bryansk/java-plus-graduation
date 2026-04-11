@@ -20,18 +20,14 @@ public class InternalRequestController implements RequestOperations {
     @Override
     @PostMapping("/count")
     public Map<Long, Integer> getCountConfirmedRequestsByEventIds(@RequestBody List<Long> eventsIds) {
-        log.info("Посчитать запросы на участие в мероприятиях: {}", eventsIds);
-        Map<Long, Integer> requestsCountByEvent = requestService.getCountConfirmedRequestsByEventIds(eventsIds);
-        log.info("Посчитанные запросы: {}", requestsCountByEvent);
-        return requestsCountByEvent;
+        log.debug("POST /internal/requests/count: подсчёт подтверждённых заявок для eventIds={}", eventsIds);
+        return requestService.getCountConfirmedRequestsByEventIds(eventsIds);
     }
 
     @Override
     @GetMapping("/count/{eventId}")
     public int getCountConfirmedRequestsByEventId(@PathVariable Long eventId) {
-        log.info("Посчитать запросы на участие в мероприятии: {}", eventId);
-        int requestCount = requestService.getCountConfirmedRequestsByEventId(eventId);
-        log.info("Посчитанные запросы для мероприятия {}: {}", eventId, requestCount);
-        return requestCount;
+        log.debug("GET /internal/requests/count/{}: подсчёт подтверждённых заявок", eventId);
+        return requestService.getCountConfirmedRequestsByEventId(eventId);
     }
 }

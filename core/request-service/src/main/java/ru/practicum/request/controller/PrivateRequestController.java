@@ -24,15 +24,14 @@ public class PrivateRequestController {
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto create(@PathVariable(name = "userId") @Positive long userId,
                                           @RequestParam(name = "eventId") @Positive long eventId) {
-        log.info("Пришел запрос на участие: userId = {}, eventId = {}", userId, eventId);
-        ParticipationRequestDto dto = requestService.createParticipationRequest(userId, eventId);
-        log.info("Сформированный запрос на участие: {}", dto);
-        return dto;
+        log.debug("POST /users/{}/requests: запрос на участие, eventId={}", userId, eventId);
+        return requestService.createParticipationRequest(userId, eventId);
     }
 
     @GetMapping("/requests")
     @ResponseStatus(HttpStatus.OK)
     public List<ParticipationRequestDto> getAllByParticipantId(@PathVariable(name = "userId") @Positive long userId) {
+        log.debug("GET /users/{}/requests: запрос всех заявок пользователя", userId);
         return requestService.getAllByParticipantId(userId);
     }
 
@@ -40,6 +39,7 @@ public class PrivateRequestController {
     @ResponseStatus(HttpStatus.OK)
     public ParticipationRequestDto cancelParticipantRequest(@PathVariable(name = "userId") @Positive long userId,
                                                             @PathVariable(name = "requestId") @Positive long requestId) {
+        log.debug("PATCH /users/{}/requests/{}/cancel: отмена заявки", userId, requestId);
         return requestService.cancelParticipantRequest(userId, requestId);
     }
 
@@ -47,6 +47,7 @@ public class PrivateRequestController {
     @ResponseStatus(HttpStatus.OK)
     public List<ParticipationRequestDto> getAllEventsOfInitiator(@PathVariable(name = "userId") @Positive long userId,
                                                                  @PathVariable(name = "eventId") @Positive long eventId) {
+        log.debug("GET /users/{}/events/{}/requests: запрос заявок на событие", userId, eventId);
         return requestService.getAllByInitiatorIdAndEventId(userId, eventId);
     }
 
@@ -55,10 +56,8 @@ public class PrivateRequestController {
     public EventRequestStatusUpdateResult changeRequestsStatus(@PathVariable(name = "userId") @Positive long userId,
                                                                @PathVariable(name = "eventId") @Positive long eventId,
                                                                @RequestBody @Valid EventRequestStatusUpdateRequest updateRequest) {
-        log.info("Изменение статусов запросов на участие: userId = {}, eventId = {}, запросы: {}, статус = {}",
+        log.debug("PATCH /users/{}/events/{}/requests: изменение статусов заявок {} -> {}",
                 userId, eventId, updateRequest.getRequestIds(), updateRequest.getStatus());
-        EventRequestStatusUpdateResult result = requestService.changeEventRequestsStatusByInitiator(updateRequest, userId, eventId);
-        log.info("Измененные статусы запросов: {}", result);
-        return result;
+        return requestService.changeEventRequestsStatusByInitiator(updateRequest, userId, eventId);
     }
 }

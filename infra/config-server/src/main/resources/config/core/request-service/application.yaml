@@ -24,9 +24,13 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: trace
+    # Уровень логирования пакета (DEBUG — видно логи, INFO — только основные)
+    ru.practicum: DEBUG
+
+    # ---- Логи Hibernate (по умолчанию отключены, раскомментируй при необходимости) ----
+    # org.hibernate.SQL: DEBUG          # выводит SQL-запросы (значение: DEBUG или OFF)
+    # org.hibernate.orm.jdbc.bind: TRACE # выводит параметры запросов (значение: TRACE или OFF)
 
 api:
   log:
-    stacktrace: true
+    stacktrace: true   # показывать полный stacktrace в ответах ошибок (только для разработки)
