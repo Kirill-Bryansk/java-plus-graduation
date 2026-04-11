@@ -16,6 +16,8 @@ import ru.practicum.rating.mark.Mark;
 import ru.practicum.rating.model.Rating;
 import ru.practicum.rating.repository.RatingRepository;
 
+import java.util.Objects;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -25,39 +27,64 @@ public class RatingServiceImpl implements RatingService {
     private final UserClient userClient;
     private final EventClient eventClient;
 
-    private static Rating getRating(NewRatingDto newRatingDto, long userId, long eventId) {
-        return Rating.builder()
-                .userId(userId)
-                .eventId(eventId)
-                .mark(newRatingDto.getMark())
-                .build();
-    }
-
     @Override
+    @Transactional
     public RatingDto create(long userId, long eventId, NewRatingDto newRatingDto) {
+        log.info("Начало создания оценки: userId={}, eventId={}, mark={}", userId, eventId, newRatingDto.getMark());
+
         boolean exists = ratingRepository.existsByUserIdAndEventId(userId, eventId);
         if (exists) {
+            log.warn("Пользователь {} уже оценивал событие {}", userId, eventId);
             throw new ConditionsNotMetException(
                     String.format("Пользователь с ID %d уже оценивал событие с ID %d", userId, eventId));
         }
 
-        eventClient.checkExistsById(eventId);
-        userClient.checkUserExists(userId);
-        return ratingMapper.toRatingDto(saveRating(newRatingDto, userId, eventId));
+        validateEventAndUser(eventId, userId);
+
+        Rating rating = Rating.builder()
+                .userId(userId)
+                .eventId(eventId)
+                .mark(newRatingDto.getMark())
+                .build();
+
+        Rating saved = ratingRepository.save(rating);
+        log.info("Оценка создана: id={}, userId={}, eventId={}, mark={}",
+                saved.getId(), saved.getUserId(), saved.getEventId(), saved.getMark());
+        return ratingMapper.toRatingDto(saved);
     }
 
     @Override
     @Transactional
     public RatingDto update(long userId, long eventId, long ratingId, UpdateRatingDto updateRatingDto) {
-        Rating rating = ratingRepository.findByIdAndUserId(ratingId, userId).orElseThrow(() ->
-                new NotFoundException(String.format(
-                        "Rating with userId = %d and id = %d was not found", userId, ratingId)));
-        Mark newMark = updateRatingDto.getMark();
-        rating.setMark(newMark);
+        log.info("Начало обновления оценки: userId={}, eventId={}, ratingId={}, newMark={}",
+                userId, eventId, ratingId, updateRatingDto.getMark());
+
+        Rating rating = ratingRepository.findByIdAndUserId(ratingId, userId)
+                .orElseThrow(() -> {
+                    log.error("Оценка с ratingId={} и userId={} не найдена", ratingId, userId);
+                    return new NotFoundException(String.format(
+                            "Rating with userId = %d and id = %d was not found", userId, ratingId));
+                });
+
+        // Проверка, что оценка принадлежит указанному событию
+        if (rating.getEventId() != eventId) {
+            log.warn("Оценка {} принадлежит событию {}, а запрос пришёл для события {}",
+                    ratingId, rating.getEventId(), eventId);
+            throw new ConditionsNotMetException(
+                    String.format("Rating %d does not belong to event %d", ratingId, eventId));
+        }
+
+        // Проверка существования события (на всякий случай, если событие уже удалено)
+        validateEventAndUser(eventId, userId);
 
         Mark oldMark = rating.getMark();
-        if (newMark != oldMark) {
-            log.info("Rating updated: {}", rating);
+        Mark newMark = updateRatingDto.getMark();
+
+        if (!Objects.equals(oldMark, newMark)) {
+            rating.setMark(newMark);
+            log.info("Оценка обновлена: ratingId={}, старый Mark={}, новый Mark={}", ratingId, oldMark, newMark);
+        } else {
+            log.debug("Значение оценки не изменилось, обновление не требуется");
         }
 
         return ratingMapper.toRatingDto(rating);
@@ -66,24 +93,39 @@ public class RatingServiceImpl implements RatingService {
     @Override
     @Transactional
     public void delete(long userId, long eventId, long ratingId) {
-        Rating ratingMark = ratingRepository.findById(ratingId).orElseThrow(() ->
-                new NotFoundException(String.format(
-                        "Rating mark not found. id = '%d'", ratingId))
-        );
+        log.info("Начало удаления оценки: userId={}, eventId={}, ratingId={}", userId, eventId, ratingId);
 
-        if (userId != ratingMark.getUserId()) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> {
+                    log.error("Оценка с id={} не найдена", ratingId);
+                    return new NotFoundException(String.format("Rating mark not found. id = '%d'", ratingId));
+                });
+
+        if (userId != rating.getUserId()) {
+            log.warn("Пользователь {} не является автором оценки {}", userId, ratingId);
             throw new ConditionsNotMetException("User with id = " + userId + " is not author of mark");
         }
 
-        eventClient.checkExistsById(eventId);
+        if (rating.getEventId() != eventId) {
+            log.warn("Оценка {} принадлежит событию {}, а запрос на удаление пришёл для события {}",
+                    ratingId, rating.getEventId(), eventId);
+            throw new ConditionsNotMetException(
+                    String.format("Rating %d does not belong to event %d", ratingId, eventId));
+        }
+
+        validateEventAndUser(eventId, userId); // проверка существования события (опционально, но для консистентности)
 
         ratingRepository.deleteById(ratingId);
-        log.info("Rating mark '{}' deleted", ratingId);
+        log.info("Оценка с id={} удалена", ratingId);
     }
 
-    @Transactional
-    private Rating saveRating(NewRatingDto dto, long userId, long eventId) {
-        Rating newMark = getRating(dto, userId, eventId);
-        return ratingRepository.save(newMark);
+    /**
+     * Общая проверка существования события и пользователя через внешние клиенты.
+     */
+    private void validateEventAndUser(long eventId, long userId) {
+        log.debug("Проверка существования события с id={}", eventId);
+        eventClient.checkExistsById(eventId);
+        log.debug("Проверка существования пользователя с id={}", userId);
+        userClient.checkUserExists(userId);
     }
 }

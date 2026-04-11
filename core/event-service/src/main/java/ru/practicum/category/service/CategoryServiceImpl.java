@@ -28,18 +28,18 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryDto addCategory(NewCategoryDto newCategoryDto) {
-        log.info("Starting create category with name = {}.", newCategoryDto.getName());
+        log.info("Начало создания категории с именем = {}.", newCategoryDto.getName());
         checkCategoryOnExistByName(newCategoryDto.getName());
         Category newCategory = categoryMapper.toCategory(newCategoryDto);
         Category created = categoryRepository.save(newCategory);
-        log.info("Category {} with id = {} created", created.getName(), created.getId());
+        log.info("Категория {} с id = {} создана", created.getName(), created.getId());
         return categoryMapper.toCategoryDto(created);
     }
 
     @Override
     @Transactional
     public void deleteCategory(long catId) {
-        log.info("Start deleting category with id = {}", catId);
+        log.info("Начало удаления категории с id = {}", catId);
         if (!categoryRepository.existsById(catId)) {
             throw new NotFoundException("Category with id = " + catId + " not found.");
         }
@@ -48,7 +48,7 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         categoryRepository.deleteById(catId);
-        log.info("Category with id {} deleted", catId);
+        log.info("Категория с id {} удалена", catId);
     }
 
     @Override
@@ -56,30 +56,30 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto updateCategory(long catId, NewCategoryDto categoryDto) {
         Category toUpdate = findByIdOrThrow(catId);
         String nameToUpdate = categoryDto.getName();
-        log.info("Starting update category with id = {}, name for update = {}.", catId, categoryDto.getName());
+        log.info("Начало обновления категории с id = {}, имя для обновления = {}.", catId, categoryDto.getName());
 
         if (toUpdate.getName().equals(nameToUpdate)) {
             return categoryMapper.toCategoryDto(toUpdate);
         }
         checkCategoryOnExistByName(categoryDto.getName());
         toUpdate.setName(nameToUpdate);
-        log.info("Category with id = {} updated with new name {}", catId, nameToUpdate);
+        log.info("Категория с id = {} обновлена с новым именем {}", catId, nameToUpdate);
         return categoryMapper.toCategoryDto(toUpdate);
     }
 
     @Override
     public List<CategoryDto> getAllCategories(Integer from, Integer size) {
-        log.info("Starting get all categories with params: from = {}, size = {}.", from, size);
+        log.info("Начало получения всех категорий с параметрами: from = {}, size = {}.", from, size);
         List<Category> categories = categoryRepository.findAll(PageRequest.of(from, size)).getContent();
-        log.info("Got all categories, count = {}", categories.size());
+        log.info("Получены все категории, количество = {}", categories.size());
         return categoryMapper.toCategoryDtoList(categories);
     }
 
     @Override
     public CategoryDto getCategoryById(long catId) {
-        log.info("Starting get category with id = {}", catId);
+        log.info("Начало получения категории с id = {}", catId);
         Category finded = findByIdOrThrow(catId);
-        log.info("Category with id = {} was found.", catId);
+        log.info("Категория с id = {} найдена.", catId);
         return categoryMapper.toCategoryDto(finded);
     }
 
@@ -94,5 +94,4 @@ public class CategoryServiceImpl implements CategoryService {
             throw new DataAlreadyInUseException("Category with this name has already exist.");
         }
     }
-
 }
