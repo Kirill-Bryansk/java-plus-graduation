@@ -12,6 +12,10 @@ import ru.practicum.rating.service.RatingInternalService;
 
 import java.util.List;
 
+/**
+ * Внутренний контроллер оценок для вызовов между сервисами (Feign).
+ * Используется event-service для получения списка самых популярных событий.
+ */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +24,12 @@ public class InternalRatingController implements RatingOperations {
 
     private final RatingInternalService ratingInternalService;
 
+    /**
+     * Получить ID самых лайкнутых событий.
+     *
+     * @param param параметры запроса (limit)
+     * @return список ID событий, отсортированный по количеству лайков
+     */
     @Override
     @GetMapping
     public List<Long> getMostLikedEventIds(@RequestParam EventSearchByRatingParam param) {

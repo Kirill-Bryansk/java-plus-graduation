@@ -18,6 +18,11 @@ import ru.practicum.rating.repository.RatingRepository;
 
 import java.util.Objects;
 
+/**
+ * Реализация сервиса оценок событий.
+ * Выполняет CRUD-операции с оценками (LIKE/DISLIKE),
+ * проверяет существование пользователей и событий через Feign-клиенты.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor

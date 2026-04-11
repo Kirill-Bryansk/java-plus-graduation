@@ -9,6 +9,10 @@ import ru.practicum.rating.repository.RatingRepository;
 
 import java.util.List;
 
+/**
+ * Реализация внутреннего сервиса оценок для межсервисного взаимодействия.
+ * Использует RatingRepository для поиска самых лайкнутых событий.
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -16,6 +20,12 @@ public class RatingInternalServiceImpl implements RatingInternalService {
 
     private final RatingRepository ratingRepository;
 
+    /**
+     * Получить ID самых лайкнутых событий.
+     *
+     * @param param параметры запроса (limit)
+     * @return список ID событий, отсортированный по количеству лайков
+     */
     @Override
     public List<Long> getMostLikedEventIds(EventSearchByRatingParam param) {
         log.info("Получение популярных событий: limit={}", param.getLimit());
