@@ -155,9 +155,7 @@ public class UserServiceImpl implements UserService {
      * @throws NotFoundException если пользователь не найден
      */
     private User findById(long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() ->
+        return userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException("User with id = " + userId + " not found."));
-        log.debug("Найден пользователь: id={}, name={}", user.getId(), user.getName());
-        return user;
     }
 }

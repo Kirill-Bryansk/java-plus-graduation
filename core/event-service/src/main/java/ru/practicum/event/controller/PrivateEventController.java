@@ -37,7 +37,7 @@ public class PrivateEventController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public EventFullDto create(@RequestBody @Valid EventNewDto newEvent, @PathVariable long userId) {
-        log.debug("POST: Запрос на создание события: userId={}, {}", userId, newEvent);
+        log.debug("POST: Запрос на создание события: userId={}, {}", userId, newEvent.getTitle());
         return eventService.add(newEvent, userId);
     }
 
