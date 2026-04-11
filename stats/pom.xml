@@ -12,9 +12,7 @@
     <artifactId>stats</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>stats-interaction-api</module>
         <module>stats-client</module>
-        <module>stats-server</module>
     </modules>
 
     <properties>
