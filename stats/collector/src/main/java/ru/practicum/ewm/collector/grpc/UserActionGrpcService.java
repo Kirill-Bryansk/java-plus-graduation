@@ -9,9 +9,8 @@ import ru.practicum.ewm.collector.producer.UserActionKafkaProducer;
 import ru.practicum.ewm.stats.avro.ActionTypeAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 import ru.practicum.ewm.stats.proto.collector.UserActionControllerGrpc;
+import ru.practicum.ewm.stats.proto.event.ActionTypeProto;
 import ru.practicum.ewm.stats.proto.event.UserActionProto;
-
-import java.time.Instant;
 
 /**
  * gRPC-сервис Collector.
@@ -42,15 +41,16 @@ public class UserActionGrpcService extends UserActionControllerGrpc.UserActionCo
         // Конвертация Proto-enum → Avro-enum
         ActionTypeAvro actionTypeAvro = mapToAvro(request.getActionType());
 
-        // Конвертация Proto-Timestamp → Avro-timestamp_ms
-        long timestampMs = request.getTimestamp().toEpochMilli();
+        // Конвертация Proto-Timestamp (секунды + наносекунды) → миллисекунды для Avro
+        long timestampMs = request.getTimestamp().getSeconds() * 1000
+                + request.getTimestamp().getNanos() / 1_000_000;
 
-        // Создание Avro-записи
+        // Создание Avro-записи (timestamp_ms — это Long в Avro)
         UserActionAvro avroMessage = new UserActionAvro(
                 request.getUserId(),
                 request.getEventId(),
                 actionTypeAvro,
-                Instant.ofEpochMilli(timestampMs)
+                timestampMs
         );
 
         // Ключ партиционирования: действия одного пользователя → одна партиция
@@ -67,7 +67,7 @@ public class UserActionGrpcService extends UserActionControllerGrpc.UserActionCo
      * Маппинг Proto-enum → Avro-enum.
      * ACTION_VIEW → VIEW, ACTION_REGISTER → REGISTER, ACTION_LIKE → LIKE.
      */
-    private ActionTypeAvro mapToAvro(UserActionProto.ActionTypeProto protoType) {
+    private ActionTypeAvro mapToAvro(ActionTypeProto protoType) {
         return switch (protoType) {
             case ACTION_VIEW -> ActionTypeAvro.VIEW;
             case ACTION_REGISTER -> ActionTypeAvro.REGISTER;
