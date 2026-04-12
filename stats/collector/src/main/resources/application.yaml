@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: collector  # имя сервиса для Eureka
+  kafka:
+    bootstrap-servers: localhost:9092  # адрес Kafka-брокера (для локальной разработки)
+  config:
+    import: "configserver:"  # подтягивать конфиги из config-server
+  cloud:
+    config:
+      fail-fast: true  # падать при недоступности config-server
+      retry:
+        useRandomPolicy: true
+        max-interval: 6000
+      discovery:
+        enabled: true
+        serviceId: config-server  # искать config-server через Eureka
+
+server:
+  port: 0  # случайный HTTP-порт (для actuator)
+
+# gRPC-сервер: случайный порт, чтобы можно было запустить несколько реплик
+grpc:
+  server:
+    port: 0
+
+# Eureka: регистрация в discovery-server
+eureka:
+  instance:
+    prefer-ip-address: true  # регистрироваться по IP, не по hostname
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+
+# Actuator: health-проверки
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
