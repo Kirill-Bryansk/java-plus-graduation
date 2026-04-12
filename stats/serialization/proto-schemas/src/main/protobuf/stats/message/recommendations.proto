@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package stats.message.dashboard;
+
+option java_multiple_files = true;
+option java_package = "ru.practicum.ewm.stats.proto.dashboard";
+
+/**
+ * Запрос рекомендаций для конкретного пользователя.
+ * Используется методом GetRecommendationsForUser.
+ */
+message UserPredictionsRequestProto {
+  int64 user_id = 1;     // ID пользователя
+  int32 max_results = 2; // максимум результатов в потоке
+}
+
+/**
+ * Запрос похожих мероприятий.
+ * Используется методом GetSimilarEvents.
+ */
+message SimilarEventsRequestProto {
+  int64 event_id = 1;    // ID мероприятия-образца
+  int64 user_id = 2;     // ID пользователя (для исключения просмотренных)
+  int32 max_results = 3; // максимум результатов в потоке
+}
+
+/**
+ * Запрос суммы взаимодействий для списка мероприятий.
+ * Используется методом GetInteractionsCount.
+ */
+message InteractionsCountRequestProto {
+  repeated int64 event_id = 1; // список ID мероприятий
+}
+
+/**
+ * Одно рекомендованное мероприятие.
+ * Возвращается всеми тремя методами RecommendationsController.
+ * Поле score интерпретируется по-разному:
+ * - GetRecommendationsForUser: предсказанная оценка
+ * - GetSimilarEvents: коэффициент сходства
+ * - GetInteractionsCount: сумма весов действий
+ */
+message RecommendedEventProto {
+  int64 event_id = 1; // ID рекомендуемого мероприятия
+  double score = 2;   // оценка/сходство/сумма весов
+}

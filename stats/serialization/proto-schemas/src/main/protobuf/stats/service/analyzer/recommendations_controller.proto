@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package stats.service.dashboard;
+
+import "stats/message/recommendations.proto";
+
+option java_multiple_files = true;
+option java_package = "ru.practicum.ewm.stats.proto.dashboard";
+
+/**
+ * Сервис Analyzer (RecommendationsController): предоставляет рекомендации мероприятий.
+ * Используется core-сервисами через gRPC-клиент для получения:
+ * - персональных рекомендаций для пользователя
+ * - похожих мероприятий
+ * - суммы взаимодействий по списку событий
+ */
+service RecommendationsController {
+
+  /**
+   * Получить список рекомендованных мероприятий для пользователя.
+   * Алгоритм: на основе истории взаимодействий и косинусного сходства
+   * вычисляет предсказанную оценку для каждого нового мероприятия.
+   *
+   * @param request user_id + max_results
+   * @return stream RecommendedEventProto (event_id + score=предсказанная_оценка)
+   */
+  rpc GetRecommendationsForUser(stats.message.dashboard.UserPredictionsRequestProto)
+      returns (stream stats.message.dashboard.RecommendedEventProto);
+
+  /**
+   * Получить мероприятия, похожие на указанное.
+   * Исключает мероприятия, с которыми пользователь уже взаимодействовал.
+   *
+   * @param request event_id (образец) + user_id (для фильтрации) + max_results
+   * @return stream RecommendedEventProto (event_id + score=коэффициент_сходства)
+   */
+  rpc GetSimilarEvents(stats.message.dashboard.SimilarEventsRequestProto)
+      returns (stream stats.message.dashboard.RecommendedEventProto);
+
+  /**
+   * Получить сумму максимальных весов действий для списка мероприятий.
+   * Используется для отображения рейтинга (популярности) событий.
+   *
+   * @param request список event_id
+   * @return stream RecommendedEventProto (event_id + score=сумма_весов)
+   */
+  rpc GetInteractionsCount(stats.message.dashboard.InteractionsCountRequestProto)
+      returns (stream stats.message.dashboard.RecommendedEventProto);
+}

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package stats.message.event;
+
+import "google/protobuf/timestamp.proto";
+import "stats/message/action_type.proto";
+
+option java_multiple_files = true;
+option java_package = "ru.practicum.ewm.stats.proto.event";
+
+/**
+ * Действие пользователя с мероприятием.
+ * Передаётся от core-сервисов к Collector по gRPC,
+ * затем конвертируется в Avro и записывается в Kafka-топик stats.user-actions.v1.
+ */
+message UserActionProto {
+  int64 user_id = 1;                      // ID пользователя
+  int64 event_id = 2;                     // ID мероприятия
+  ActionTypeProto action_type = 3;        // тип действия (VIEW/REGISTER/LIKE)
+  google.protobuf.Timestamp timestamp = 4; // временная метка действия
+}
