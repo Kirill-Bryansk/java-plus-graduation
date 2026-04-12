@@ -2,7 +2,7 @@ spring:
   application:
     name: collector  # имя сервиса для Eureka
   kafka:
-    bootstrap-servers: localhost:9092  # адрес Kafka-брокера (для локальной разработки)
+    bootstrap-servers: localhost:9092  # адрес Kafka-брокера (локальная разработка)
   config:
     import: "configserver:"  # подтягивать конфиги из config-server
   cloud:
@@ -22,6 +22,11 @@ server:
 grpc:
   server:
     port: 0
+
+# Kafka-топики: имена вынесены в конфиг для гибкости
+kafka:
+  topics:
+    stats-user-action-v1: stats.user-actions.v1
 
 # Eureka: регистрация в discovery-server
 eureka:

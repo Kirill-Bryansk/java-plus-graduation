@@ -13,6 +13,7 @@ import java.io.IOException;
 /**
  * Кастомный Kafka-сериализатор для Avro-записей.
  * Кодирует SpecificRecordBase в бинарный массив через BinaryEncoder.
+ * Используется без Schema Registry — схема встроена в саму запись.
  */
 public class GeneralAvroSerializer implements Serializer<SpecificRecordBase> {
 
