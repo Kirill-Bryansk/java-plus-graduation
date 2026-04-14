@@ -22,6 +22,7 @@ public interface EventMapper {
     @Mapping(target = "initiator", source = "initiator")
     @Mapping(target = "id", source = "event.id")
     @Mapping(target = "rating", source = "event.rating")
+    @Mapping(target = "confirmedRequests", source = "event.confirmedRequests")
     EventFullDto toFullDto(Event event, UserShortDto initiator);
 
     @Mapping(target = "category", ignore = true)
@@ -49,8 +50,31 @@ public interface EventMapper {
         return eventShortDtos;
     }
 
-    @Mapping(target = "initiator", source = "initiatorId")
-    List<EventFullDto> toEventFullDtoList(List<Event> events);
+    default List<EventFullDto> toEventFullDtoList(List<Event> events) {
+        List<EventFullDto> result = new ArrayList<>();
+        for (Event event : events) {
+            EventFullDto dto = new EventFullDto();
+            dto.setId(event.getId());
+            dto.setAnnotation(event.getAnnotation());
+            dto.setCategory(event.getCategory() != null ? 
+                    new CategoryDto(event.getCategory().getId(), event.getCategory().getName()) : null);
+            dto.setConfirmedRequests(event.getConfirmedRequests());
+            dto.setCreatedOn(event.getCreatedOn());
+            dto.setEventDate(event.getEventDate());
+            dto.setDescription(event.getDescription());
+            dto.setInitiator(null); // initiator будет установлен позже
+            dto.setLocation(event.getLocation());
+            dto.setPaid(event.isPaid());
+            dto.setParticipantLimit(event.getParticipantLimit());
+            dto.setPublishedOn(event.getPublishedOn());
+            dto.setRequestModeration(event.isRequestModeration());
+            dto.setState(event.getState());
+            dto.setTitle(event.getTitle());
+            dto.setRating(event.getRating());
+            result.add(dto);
+        }
+        return result;
+    }
 
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "state", ignore = true)
@@ -58,5 +82,10 @@ public interface EventMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Event toEventFromEventAdminUpdateDto(EventAdminUpdateDto dto, @MappingTarget Event event);
 
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "initiatorId", source = "initiatorId")
+    @Mapping(target = "participantLimit", source = "participantLimit")
+    @Mapping(target = "state", source = "state")
+    @Mapping(target = "requestModeration", source = "requestModeration")
     EventForRequestDto toEventForRequestDto(Event event);
 }

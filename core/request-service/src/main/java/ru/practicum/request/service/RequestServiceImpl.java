@@ -40,6 +40,7 @@ public class RequestServiceImpl implements RequestService {
     private final RequestMapper requestMapper;
 
     @Override
+    @Transactional
     public ParticipationRequestDto createParticipationRequest(long userId, long eventId) {
         log.info("Создание заявки на участие: userId={}, eventId={}", userId, eventId);
 

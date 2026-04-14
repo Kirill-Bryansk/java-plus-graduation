@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 import ru.practicum.errors.ApiError;
+import ru.practicum.errors.exceptions.ConditionsNotMetException;
+import ru.practicum.errors.exceptions.DataAlreadyInUseException;
 import ru.practicum.errors.exceptions.NotFoundException;
 import ru.practicum.errors.exceptions.ValidationException;
 
@@ -37,6 +39,7 @@ public class CustomErrorDecoder implements ErrorDecoder {
         return switch (response.status()) {
             case 404 -> new NotFoundException(message);
             case 400 -> new ValidationException(message);
+            case 409 -> new ConditionsNotMetException(message);
             default -> new RuntimeException(message);
         };
     }

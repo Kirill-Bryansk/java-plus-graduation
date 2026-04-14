@@ -192,7 +192,7 @@ public class EventServiceImpl implements EventService {
 
         events = applyConfirmedRequestsToEvents(events);
 
-        List<EventFullDto> result = eventMapper.toEventFullDtoList(events);
+        List<EventFullDto> result = mapToFullDtos(events);
         log.info("Получено {} событий (админ)", result.size());
         return result;
     }
@@ -355,6 +355,18 @@ public class EventServiceImpl implements EventService {
         Map<Long, UserShortDto> usersByIds = userClient.getAllUsersByIds(new ArrayList<>(usersIds));
         List<EventShortDto> eventShortDtos = eventMapper.toEventShortDtoList(events, usersByIds);
         return eventShortDtos;
+    }
+
+    private List<EventFullDto> mapToFullDtos(List<Event> events) {
+        Set<Long> usersIds = events.stream().map(Event::getInitiatorId).collect(Collectors.toSet());
+        Map<Long, UserShortDto> usersByIds = userClient.getAllUsersByIds(new ArrayList<>(usersIds));
+        List<EventFullDto> result = eventMapper.toEventFullDtoList(events);
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            EventFullDto dto = result.get(i);
+            dto.setInitiator(usersByIds.get(event.getInitiatorId()));
+        }
+        return result;
     }
 
     /**
