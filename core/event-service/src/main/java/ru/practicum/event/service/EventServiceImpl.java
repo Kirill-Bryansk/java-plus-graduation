@@ -258,7 +258,13 @@ public class EventServiceImpl implements EventService {
         // Отправляем просмотр через gRPC Collector
         collectorClient.sendUserAction(userId, eventId, ActionType.ACTION_VIEW);
 
-        UserShortDto user = userClient.getById(event.getInitiatorId());
+        UserShortDto user;
+        try {
+            user = userClient.getById(event.getInitiatorId());
+        } catch (Exception e) {
+            log.warn("Не удалось получить пользователя {}: {}", event.getInitiatorId(), e.getMessage());
+            user = null;
+        }
         EventFullDto eventFullDto = eventMapper.toFullDto(event, user);
 
         // Запрашиваем рейтинг через gRPC Analyzer
@@ -332,15 +338,28 @@ public class EventServiceImpl implements EventService {
 
     private List<Event> applyConfirmedRequestsToEvents(List<Event> events) {
         List<Long> eventsIds = events.stream().map(Event::getId).toList();
-        Map<Long, Integer> requestsByEventIds = requestClient.getCountConfirmedRequestsByEventIds(eventsIds);
+        Map<Long, Integer> requestsByEventIds;
+        try {
+            requestsByEventIds = requestClient.getCountConfirmedRequestsByEventIds(eventsIds);
+        } catch (Exception e) {
+            log.warn("Не удалось получить количество подтверждённых заявок: {}", e.getMessage());
+            requestsByEventIds = new java.util.HashMap<>();
+        }
 
+        final Map<Long, Integer> confirmedRequestsMap = requestsByEventIds;
         return events.stream().peek(event ->
-                event.setConfirmedRequests(requestsByEventIds.getOrDefault(event.getId(), 0))
+                event.setConfirmedRequests(confirmedRequestsMap.getOrDefault(event.getId(), 0))
         ).collect(Collectors.toList());
     }
 
     private void applyConfirmedRequestsToEvent(Event event) {
-        int confirmed = requestClient.getCountConfirmedRequestsByEventId(event.getId());
+        int confirmed;
+        try {
+            confirmed = requestClient.getCountConfirmedRequestsByEventId(event.getId());
+        } catch (Exception e) {
+            log.warn("Не удалось получить количество подтверждённых заявок: {}", e.getMessage());
+            confirmed = 0;
+        }
         event.setConfirmedRequests(confirmed);
     }
 
@@ -352,19 +371,33 @@ public class EventServiceImpl implements EventService {
 
     private List<EventShortDto> mapToShortDtos(List<Event> events) {
         Set<Long> usersIds = events.stream().map(Event::getInitiatorId).collect(Collectors.toSet());
-        Map<Long, UserShortDto> usersByIds = userClient.getAllUsersByIds(new ArrayList<>(usersIds));
-        List<EventShortDto> eventShortDtos = eventMapper.toEventShortDtoList(events, usersByIds);
+        Map<Long, UserShortDto> usersByIds;
+        try {
+            usersByIds = userClient.getAllUsersByIds(new ArrayList<>(usersIds));
+        } catch (Exception e) {
+            log.warn("Не удалось получить пользователей: {}", e.getMessage());
+            usersByIds = new java.util.HashMap<>();
+        }
+        final Map<Long, UserShortDto> usersMap = usersByIds;
+        List<EventShortDto> eventShortDtos = eventMapper.toEventShortDtoList(events, usersMap);
         return eventShortDtos;
     }
 
     private List<EventFullDto> mapToFullDtos(List<Event> events) {
         Set<Long> usersIds = events.stream().map(Event::getInitiatorId).collect(Collectors.toSet());
-        Map<Long, UserShortDto> usersByIds = userClient.getAllUsersByIds(new ArrayList<>(usersIds));
+        Map<Long, UserShortDto> usersByIds;
+        try {
+            usersByIds = userClient.getAllUsersByIds(new ArrayList<>(usersIds));
+        } catch (Exception e) {
+            log.warn("Не удалось получить пользователей: {}", e.getMessage());
+            usersByIds = new java.util.HashMap<>();
+        }
+        final Map<Long, UserShortDto> usersMap = usersByIds;
         List<EventFullDto> result = eventMapper.toEventFullDtoList(events);
         for (int i = 0; i < events.size(); i++) {
             Event event = events.get(i);
             EventFullDto dto = result.get(i);
-            dto.setInitiator(usersByIds.get(event.getInitiatorId()));
+            dto.setInitiator(usersMap.get(event.getInitiatorId()));
         }
         return result;
     }
