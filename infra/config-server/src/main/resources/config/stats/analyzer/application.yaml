@@ -1,0 +1,26 @@
+# Настройки Analyzer: БД + Kafka
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:6541/stats
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none  # Используем schema.sql для инициализации
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: stats_analyzer
+
+kafka:
+  bootstrap:
+    servers: localhost:9092
+  consumer:
+    poll:
+      timeout: 100
+  topics:
+    stats-user-action-v1: stats.user-actions.v1
+    stats-events-similarity-v1: stats.events-similarity.v1
+    stats-events-v1: stats.events.v1

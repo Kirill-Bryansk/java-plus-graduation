@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: analyzer
+  config:
+    import: "configserver:"  # Конфигурация Kafka и БД с сервера
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        serviceId: config-server
+      fail-fast: true
+      retry:
+        useRandomPolicy: true
+        max-interval: 6000
+
+server:
+  port: 0
+
+# Eureka: регистрация в discovery-server
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: "${spring.application.name}:${random.value}"
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# gRPC-сервер: случайный порт
+grpc:
+  server:
+    port: 0
