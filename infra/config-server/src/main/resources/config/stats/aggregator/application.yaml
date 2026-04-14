@@ -1,0 +1,11 @@
+# Настройки подключения к Kafka для Aggregator
+kafka:
+  bootstrap:
+    servers: localhost:9092
+  consumer:
+    group: stats.aggregator.action   # Группа потребителей
+    poll:
+      timeout: 100                   # Таймаут поллинга (мс)
+  topics:
+    stats-user-action-v1: stats.user-actions.v1
+    stats-events-similarity-v1: stats.events-similarity.v1

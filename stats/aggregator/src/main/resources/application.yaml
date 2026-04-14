@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: aggregator
+  config:
+    import: "configserver:"  # Обязательно тянем конфиг с сервера
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        serviceId: config-server
+      fail-fast: true  # Не запускаться, если конфиг-сервер недоступен
+      retry:
+        useRandomPolicy: true
+        max-interval: 6000
+
+server:
+  port: 0  # Случайный порт
+
+# Eureka: Регистрация сервиса
+eureka:
+  instance:
+    prefer-ip-address: true  # В реестре показываем IP
+    instance-id: "${spring.application.name}:${random.value}"
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
