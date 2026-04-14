@@ -1,4 +1,4 @@
-package ru.practicum.client.config;
+package ru.practicum.grpc.config;
 
 import feign.codec.ErrorDecoder;
 import org.springframework.context.annotation.Bean;

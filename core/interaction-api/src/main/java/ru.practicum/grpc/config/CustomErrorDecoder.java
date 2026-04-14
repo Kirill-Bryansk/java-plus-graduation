@@ -1,4 +1,4 @@
-package ru.practicum.client.config;
+package ru.practicum.grpc.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Response;
