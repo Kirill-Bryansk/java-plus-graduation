@@ -1,36 +1,30 @@
-server:
-  port: 0
-
+# Конфигурация event-service
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:6542/ewmdb
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: none
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: core-events
-  sql:
-    init:
-      mode: always
-  http:
-    logging:
-      include-headers: true
-  datasource:
-    driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:6542/ewmdb
-    username: user
-    password: password
 
-logging:
-  level:
-    # Уровень логирования пакета (DEBUG — видно логи, INFO — только основные)
-    ru.practicum: DEBUG
+server:
+  port: 0
 
-    # ---- Логи Hibernate (по умолчанию отключены, раскомментируй при необходимости) ----
-    # org.hibernate.SQL: DEBUG          # выводит SQL-запросы (значение: DEBUG или OFF)
-    # org.hibernate.orm.jdbc.bind: TRACE # выводит параметры запросов (значение: TRACE или OFF)
-
-api:
-  log:
-    stacktrace: true   # показывать полный stacktrace в ответах ошибок (только для разработки)
+# gRPC-клиенты для общения с recommendation-сервисами
+grpc:
+  client:
+    collector:
+      address: 'discovery:///collector'
+      negotiationType: plaintext
+    analyzer:
+      address: 'discovery:///analyzer'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext

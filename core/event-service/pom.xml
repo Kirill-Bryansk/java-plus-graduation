@@ -94,7 +94,7 @@
             <artifactId>spring-retry</artifactId>
         </dependency>
 
-        <!-- Внутренние модули: Feign-клиенты для других сервисов -->
+        <!-- Внутренние модули: Feign-клиенты и gRPC-клиенты для рекомендаций -->
         <dependency>
             <groupId>ru.practicum</groupId>
             <artifactId>interaction-api</artifactId>
