@@ -20,7 +20,7 @@ import java.util.Properties;
 @Configuration
 public class KafkaConfig {
 
-    @Value("${spring.kafka.bootstrap-servers}")
+    @Value("${kafka.bootstrap.servers}")
     private String bootstrapServers;
 
     /**

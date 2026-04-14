@@ -1,10 +1,8 @@
 spring:
   application:
-    name: collector  # имя сервиса для Eureka
-  kafka:
-    bootstrap-servers: localhost:9092  # адрес Kafka-брокера (локальная разработка)
+    name: collector
   config:
-    import: "configserver:"  # подтягивать конфиги из config-server
+    import: "configserver:"  # Config Server — обязательный источник конфигурации
   cloud:
     config:
       fail-fast: true  # падать при недоступности config-server
@@ -16,30 +14,18 @@ spring:
         serviceId: config-server  # искать config-server через Eureka
 
 server:
-  port: 0  # случайный HTTP-порт (для actuator)
-
-# gRPC-сервер: случайный порт, чтобы можно было запустить несколько реплик
-grpc:
-  server:
-    port: 0
-
-# Kafka-топики: имена вынесены в конфиг для гибкости
-kafka:
-  topics:
-    stats-user-action-v1: stats.user-actions.v1
+  port: 0  # случайный HTTP-порт
 
 # Eureka: регистрация в discovery-server
+# Eureka-настройки должны быть локально — клиент инициализируется до загрузки конфига из config-server
 eureka:
+  # instance — как сервис представлен в реестре
   instance:
-    prefer-ip-address: true  # регистрироваться по IP, не по hostname
+    prefer-ip-address: true  # использовать IP вместо hostname в реестре
+    hostname: localhost       # фиксированный hostname для локальной разработки
+    instance-id: "${spring.application.name}:${random.value}"  # уникальный ID экземпляра (для нескольких реплик)
+  # client — как сервис подключается к Eureka
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-
-# Actuator: health-проверки
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
+      defaultZone: http://localhost:8761/eureka/  # адрес Eureka-сервера
+    register-with-eureka: true  # регистрироваться в реестре
