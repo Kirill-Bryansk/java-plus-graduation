@@ -1,5 +1,6 @@
 package ru.practicum.category.controller;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -134,6 +135,21 @@ public class ErrorHandler {
         String stackTrace = isStackTrace ? sw.toString() : "Stack trace not allowed by property";
         return new ApiError(stackTrace, e.getMessage(),
                 "Incorrectly made request.", HttpStatus.BAD_REQUEST, LocalDateTime.now().format(formatter));
+    }
+
+    /**
+     * Обработка FeignException (ошибка вызова другого сервиса) → 500.
+     * Логируем детали для отладки, но не показываем stacktrace клиенту.
+     */
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handleFeignException(final FeignException e) {
+        log.error("500 Feign error: {} (status {})", e.getMessage(), e.status());
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        String stackTrace = isStackTrace ? sw.toString() : "Stack trace not allowed by property";
+        return new ApiError(stackTrace, e.getMessage(), "Internal service error.",
+                HttpStatus.INTERNAL_SERVER_ERROR, LocalDateTime.now().format(formatter));
     }
 
     /**
