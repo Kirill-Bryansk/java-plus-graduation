@@ -22,5 +22,9 @@ public class EventShortDto {
     private UserShortDto initiator;
     private boolean paid;
     private String title;
-    private long views;
+    /**
+     * Рейтинг мероприятия (сумма весов взаимодействий).
+     * Запрашивается у Analyzer через gRPC.
+     */
+    private double rating;
 }

@@ -10,14 +10,10 @@ import com.google.protobuf.Timestamp;
 
 import java.time.Instant;
 
-/**
- * Тестовый клиент для отправки одного действия в Collector.
- * Запусти этот main-метод, чтобы проверить работу всей цепочки.
- */
+
 public class GrpcTestClient {
     public static void main(String[] args) {
         // ВАЖНО: Укажи здесь порт, который написал Collector при запуске!
-        // Ищи строку: "gRPC Server started, listening on address: *, port: XXXXX"
         int port = 23186; // ЗАМЕНИ НА СВОЙ ПОРТ
 
         String target = "localhost:" + port;

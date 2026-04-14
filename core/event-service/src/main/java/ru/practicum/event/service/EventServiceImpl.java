@@ -13,10 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.service.CategoryService;
+import ru.practicum.ewm.stats.client.ActionType;
+import ru.practicum.ewm.stats.client.AnalyzerGrpcClient;
+import ru.practicum.ewm.stats.client.CollectorGrpcClient;
 import ru.practicum.grpc.RequestClient;
 import ru.practicum.grpc.UserClient;
-import ru.practicum.dto.ResponseStatDto;
-import ru.practicum.dto.StatDto;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.enums.event.EventState;
 import ru.practicum.errors.exceptions.ConditionsNotMetException;
@@ -53,8 +54,10 @@ public class EventServiceImpl implements EventService {
     private final CategoryService categoryService;
     private final EventMapper eventMapper;
     private final UserClient userClient;
-    private final StatsClientService statsClient;
     private final RequestClient requestClient;
+    // gRPC-клиенты для recommendation-сервисов
+    private final CollectorGrpcClient collectorClient;
+    private final AnalyzerGrpcClient analyzerClient;
 
     @Override
     @Transactional
@@ -235,29 +238,38 @@ public class EventServiceImpl implements EventService {
         }
 
         List<EventShortDto> result = mapToShortDtos(events);
+
+        // Запрашиваем рейтинги через gRPC Analyzer
+        applyRatings(events, result);
+
         log.info("Получено {} публичных событий", result.size());
         return result;
     }
 
     @Override
-    public EventFullDto getByIdPublic(long eventId, StatDto statDto) {
-        log.info("Получение публичного события: eventId={}", eventId);
+    public EventFullDto getByIdPublic(long eventId, long userId) {
+        log.info("Получение публичного события: eventId={}, userId={}", eventId, userId);
         Event event = findById(eventId);
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new NotFoundException("Событие с id: " + eventId + " не найдено");
         }
         applyConfirmedRequestsToEvent(event);
+
+        // Отправляем просмотр через gRPC Collector
+        collectorClient.sendUserAction(userId, eventId, ActionType.ACTION_VIEW);
+
         UserShortDto user = userClient.getById(event.getInitiatorId());
         EventFullDto eventFullDto = eventMapper.toFullDto(event, user);
-        List<ResponseStatDto> stats = statsClient.getStats(LocalDateTime.now().minusMonths(1), LocalDateTime.now(),
-                List.of(statDto.getUri()), true);
 
-        if (!stats.isEmpty()) {
-            eventFullDto.setViews(stats.getFirst().getHits());
-        }
+        // Запрашиваем рейтинг через gRPC Analyzer
+        analyzerClient.getInteractionsCount(List.of(eventId))
+                .findFirst()
+                .ifPresent(r -> {
+                    event.setRating(r.getScore());
+                    eventFullDto.setRating(r.getScore());
+                });
 
-        statsClient.hit(statDto);
-        log.info("Публичное событие возвращено: id={}, views={}", eventFullDto.getId(), eventFullDto.getViews());
+        log.info("Публичное событие возвращено: id={}, rating={}", eventFullDto.getId(), eventFullDto.getRating());
         return eventFullDto;
     }
 
@@ -293,32 +305,6 @@ public class EventServiceImpl implements EventService {
                 Sort.by(EventPublicParam.EventSort.EVENT_DATE.getField())
                 : Sort.by(Sort.Direction.DESC, eventSort.getField());
         return PageRequest.of(from, size, sort);
-    }
-
-    private List<EventShortDto> applyViewsToEvents(List<EventShortDto> events) {
-        Map<String, EventShortDto> uriToEventMap = events.stream()
-                .collect(Collectors.toMap(
-                        event -> UriComponentsBuilder.fromUriString("/events")
-                                .pathSegment(String.valueOf(event.getId()))
-                                .toUriString(),
-                        Function.identity()
-                ));
-
-        List<ResponseStatDto> stats = statsClient.getStats(
-                LocalDateTime.now().minusMonths(1),
-                LocalDateTime.now(),
-                new ArrayList<>(uriToEventMap.keySet()),
-                true
-        );
-
-        for (ResponseStatDto stat : stats) {
-            EventShortDto dto = uriToEventMap.get(stat.getUri());
-            if (dto != null) {
-                dto.setViews(stat.getHits());
-            }
-        }
-
-        return new ArrayList<>(uriToEventMap.values());
     }
 
     private void handlePublishEvent(Event event, EventAdminUpdateDto eventUpdate) {
@@ -368,7 +354,28 @@ public class EventServiceImpl implements EventService {
         Set<Long> usersIds = events.stream().map(Event::getInitiatorId).collect(Collectors.toSet());
         Map<Long, UserShortDto> usersByIds = userClient.getAllUsersByIds(new ArrayList<>(usersIds));
         List<EventShortDto> eventShortDtos = eventMapper.toEventShortDtoList(events, usersByIds);
-        eventShortDtos = applyViewsToEvents(eventShortDtos);
         return eventShortDtos;
+    }
+
+    /**
+     * Запросить рейтинги мероприятий через gRPC Analyzer и применить их к DTO.
+     */
+    private void applyRatings(List<Event> events, List<EventShortDto> dtos) {
+        List<Long> eventIds = events.stream().map(Event::getId).toList();
+        if (eventIds.isEmpty()) return;
+
+        Map<Long, Double> ratingById = analyzerClient.getInteractionsCount(eventIds)
+                .collect(Collectors.toMap(
+                        r -> r.getEventId(),
+                        r -> r.getScore()
+                ));
+
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            EventShortDto dto = dtos.get(i);
+            double rating = ratingById.getOrDefault(event.getId(), 0.0);
+            event.setRating(rating);
+            dto.setRating(rating);
+        }
     }
 }

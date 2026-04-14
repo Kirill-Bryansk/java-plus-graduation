@@ -21,6 +21,7 @@ public interface EventMapper {
 
     @Mapping(target = "initiator", source = "initiator")
     @Mapping(target = "id", source = "event.id")
+    @Mapping(target = "rating", source = "event.rating")
     EventFullDto toFullDto(Event event, UserShortDto initiator);
 
     @Mapping(target = "category", ignore = true)
@@ -39,6 +40,7 @@ public interface EventMapper {
             dto.setAnnotation(event.getAnnotation());
             dto.setConfirmedRequests(event.getConfirmedRequests());
             dto.setTitle(event.getTitle());
+            dto.setRating(event.getRating());
             dto.setInitiator(users.get(event.getInitiatorId()));
             CategoryDto categoryDto = new CategoryDto(event.getCategory().getId(), event.getCategory().getName());
             dto.setCategory(categoryDto);

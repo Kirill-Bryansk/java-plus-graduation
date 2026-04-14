@@ -1,7 +1,6 @@
 package ru.practicum.event.service;
 
 import org.springframework.data.domain.Pageable;
-import ru.practicum.dto.StatDto;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.model.Event;
 
@@ -95,7 +94,7 @@ public interface EventService {
      * @return EventFullDto
      * @throws NotFoundException если событие не найдено или не опубликовано
      */
-    EventFullDto getByIdPublic(long eventId, StatDto statDto);
+    EventFullDto getByIdPublic(long eventId, long userId);
 
     /**
      * Преобразовать список сущностей Event в список EventShortDto.

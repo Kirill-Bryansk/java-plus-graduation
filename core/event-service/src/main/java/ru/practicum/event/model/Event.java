@@ -48,6 +48,14 @@ public class Event {
     @Transient
     private int confirmedRequests;
 
+    /**
+     * Рейтинг мероприятия (сумма весов взаимодействий пользователей).
+     * Вычисляется сервисом Analyzer и запрашивается через gRPC.
+     * Не хранится в БД этого сервиса.
+     */
+    @Transient
+    private double rating;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

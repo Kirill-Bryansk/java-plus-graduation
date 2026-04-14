@@ -33,5 +33,9 @@ public class EventFullDto {
     private boolean requestModeration;
     private EventState state;
     private String title;
-    private long views;
+    /**
+     * Рейтинг мероприятия (сумма весов взаимодействий).
+     * Запрашивается у Analyzer через gRPC.
+     */
+    private double rating;
 }

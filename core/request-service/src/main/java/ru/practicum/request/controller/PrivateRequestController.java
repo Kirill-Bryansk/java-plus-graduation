@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.stats.client.ActionType;
+import ru.practicum.ewm.stats.client.CollectorGrpcClient;
 import ru.practicum.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.request.dto.ParticipationRequestDto;
@@ -25,6 +27,7 @@ import java.util.List;
 @RequestMapping("/users/{userId}")
 public class PrivateRequestController {
     private final RequestService requestService;
+    private final CollectorGrpcClient collectorClient;
 
     /**
      * Создать заявку на участие в событии.
@@ -38,7 +41,12 @@ public class PrivateRequestController {
     public ParticipationRequestDto create(@PathVariable(name = "userId") @Positive long userId,
                                           @RequestParam(name = "eventId") @Positive long eventId) {
         log.debug("POST /users/{}/requests: запрос на участие, eventId={}", userId, eventId);
-        return requestService.createParticipationRequest(userId, eventId);
+        ParticipationRequestDto request = requestService.createParticipationRequest(userId, eventId);
+
+        // Отправляем информацию о регистрации в Collector через gRPC
+        collectorClient.sendUserAction(userId, eventId, ActionType.ACTION_REGISTER);
+
+        return request;
     }
 
     /**

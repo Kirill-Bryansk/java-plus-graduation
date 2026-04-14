@@ -87,10 +87,14 @@
             <artifactId>spring-retry</artifactId>
         </dependency>
 
-        <!-- Внутренний модуль: Feign-клиенты и DTO для взаимодействия -->
+        <!-- Внутренний модуль: Feign-клиенты и gRPC-клиенты для рекомендаций -->
         <dependency>
             <groupId>ru.practicum</groupId>
             <artifactId>interaction-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ru.practicum</groupId>
+            <artifactId>stats-client</artifactId>
         </dependency>
     </dependencies>
 
