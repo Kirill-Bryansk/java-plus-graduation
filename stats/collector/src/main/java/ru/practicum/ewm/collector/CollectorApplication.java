@@ -9,6 +9,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * Принимает действия пользователей по gRPC и отправляет их в Kafka.
  */
 @SpringBootApplication
+@EnableDiscoveryClient
 public class CollectorApplication {
     public static void main(String[] args) {
         SpringApplication.run(CollectorApplication.class, args);

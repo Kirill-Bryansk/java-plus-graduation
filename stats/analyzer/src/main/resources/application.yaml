@@ -24,8 +24,3 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
-
-# gRPC-сервер: случайный порт
-grpc:
-  server:
-    port: 0

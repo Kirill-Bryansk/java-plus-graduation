@@ -2,30 +2,21 @@ spring:
   application:
     name: collector
   config:
-    import: "configserver:"  # Config Server — обязательный источник конфигурации
+    import: "configserver:"
   cloud:
     config:
-      fail-fast: true  # падать при недоступности config-server
+      discovery:
+        enabled: true
+        serviceId: config-server
+      fail-fast: true
       retry:
         useRandomPolicy: true
         max-interval: 6000
-      discovery:
-        enabled: true
-        serviceId: config-server  # искать config-server через Eureka
-
-server:
-  port: 0  # случайный HTTP-порт
-
-# Eureka: регистрация в discovery-server
-# Eureka-настройки должны быть локально — клиент инициализируется до загрузки конфига из config-server
 eureka:
-  # instance — как сервис представлен в реестре
-  instance:
-    prefer-ip-address: true  # использовать IP вместо hostname в реестре
-    hostname: localhost       # фиксированный hostname для локальной разработки
-    instance-id: "${spring.application.name}:${random.value}"  # уникальный ID экземпляра (для нескольких реплик)
-  # client — как сервис подключается к Eureka
   client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/  # адрес Eureka-сервера
-    register-with-eureka: true  # регистрироваться в реестре
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    preferIpAddress: true
+    hostname: localhost
+    instance-id: "${spring.application.name}:${random.value}"
