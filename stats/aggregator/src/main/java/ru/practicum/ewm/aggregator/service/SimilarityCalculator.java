@@ -26,9 +26,9 @@ public class SimilarityCalculator {
     private static final double LIKE_WEIGHT = 1.0;
 
     private static final Map<ActionTypeAvro, Double> WEIGHTS = Map.of(
-            ActionTypeAvro.VIEW, VIEW_WEIGHT,
-            ActionTypeAvro.REGISTER, REGISTER_WEIGHT,
-            ActionTypeAvro.LIKE, LIKE_WEIGHT
+            ActionTypeAvro.ACTION_VIEW, VIEW_WEIGHT,
+            ActionTypeAvro.ACTION_REGISTER, REGISTER_WEIGHT,
+            ActionTypeAvro.ACTION_LIKE, LIKE_WEIGHT
     );
 
     // eventId -> (userId -> weight) — Матрица весов

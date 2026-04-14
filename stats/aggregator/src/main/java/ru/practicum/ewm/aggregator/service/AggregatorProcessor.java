@@ -85,6 +85,8 @@ public class AggregatorProcessor {
 
     private void handleRecord(ConsumerRecord<Long, SpecificRecordBase> record, Producer<Long, SpecificRecordBase> producer) {
         if (record.value() instanceof UserActionAvro action) {
+            log.info(">>> Получено действие: userId={}, eventId={}, type={}", action.getUserId(), action.getEventId(),
+                    action.getActionType());
             List<EventSimilarityAvro> similarities = calculator.calculateSimilarity(action);
 
             for (EventSimilarityAvro similarity : similarities) {
@@ -96,7 +98,7 @@ public class AggregatorProcessor {
                 );
                 producer.send(outRecord, (metadata, ex) -> {
                     if (ex != null) log.error("Ошибка отправки сходства", ex);
-                    else log.debug("Отправлено сходство: {} <-> {}", similarity.getEventA(), similarity.getEventB());
+                    else log.info("Отправлено сходство: {} <-> {}", similarity.getEventA(), similarity.getEventB());
                 });
             }
         }

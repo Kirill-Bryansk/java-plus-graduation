@@ -37,7 +37,8 @@ public class UserActionHandlerImpl implements UserActionHandler {
 
     /**
      * Маппинг Proto → Avro.
-     * Enum имена совпадают (VIEW/REGISTER/LIKE), поэтому valueOf работает напрямую.
+     * Теперь имена enum совпадают (ACTION_VIEW/REGISTER/LIKE),
+     * поэтому valueOf() работает напрямую без switch-мапперов.
      */
     private UserActionAvro mapToAvro(UserActionProto userActionProto) {
         Instant timestamp = Instant.ofEpochSecond(
