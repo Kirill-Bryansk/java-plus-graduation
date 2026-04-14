@@ -17,9 +17,16 @@ spring:
 server:
   port: 0
 
+# Настройки логирования ошибок (обязательно для ErrorHandler)
+api:
+  log:
+    stacktrace: true
+
 # gRPC-клиент для отправки регистраций в Collector
 grpc:
   client:
     collector:
       address: 'discovery:///collector'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
       negotiationType: plaintext

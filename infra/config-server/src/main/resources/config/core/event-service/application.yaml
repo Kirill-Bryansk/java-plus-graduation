@@ -1,4 +1,6 @@
-# Конфигурация event-service
+server:
+  port: 0
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:6542/ewmdb
@@ -8,20 +10,35 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: false
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: core_events
+  sql:
+    init:
+      mode: always  # Автоматически выполняет schema.sql при старте
+  http:
+    logging:
+      include-headers: true
 
-server:
-  port: 0
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
 
-# gRPC-клиенты для общения с recommendation-сервисами
+# Настройки логирования обработчика ошибок
+api:
+  log:
+    stacktrace: true
+
+# gRPC-клиенты для recommendation-сервисов
 grpc:
   client:
     collector:
       address: 'discovery:///collector'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
       negotiationType: plaintext
     analyzer:
       address: 'discovery:///analyzer'
