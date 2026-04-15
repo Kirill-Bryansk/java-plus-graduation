@@ -36,6 +36,9 @@
         <spring-cloud-dependencies.version>2024.0.1</spring-cloud-dependencies.version>  <!-- Spring Cloud BOM -->
         <querydsl.version>5.1.0</querydsl.version>                                       <!-- динамические JPA-запросы -->
         <postgres.version>42.7.7</postgres.version>                                      <!-- JDBC-драйвер PostgreSQL -->
+        <h2.version>2.3.232</h2.version>                                                 <!-- H2 Database для тестов -->
+        <jakarta-persistence.version>3.1.0</jakarta-persistence.version>                 <!-- Jakarta Persistence API -->
+        <spring-retry.version>2.0.11</spring-retry.version>                              <!-- Spring Retry -->
 
         <!-- Версии для Avro/Protobuf/gRPC плагинов и зависимостей -->
         <avro.version>1.11.3</avro.version>                                        <!-- бинарная сериализация, совместима с Kafka -->
@@ -104,25 +107,25 @@
                 <version>${querydsl.version}</version>
             </dependency>
 
-            <!-- Jakarta Persistence API (версия из Spring Boot BOM) -->
+            <!-- Jakarta Persistence API -->
             <dependency>
                 <groupId>jakarta.persistence</groupId>
                 <artifactId>jakarta.persistence-api</artifactId>
-                <version>3.1.0</version>
+                <version>${jakarta-persistence.version}</version>
             </dependency>
 
-            <!-- H2 база данных (версия из Spring Boot BOM) -->
+            <!-- H2 база данных -->
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
-                <version>2.3.232</version>
+                <version>${h2.version}</version>
             </dependency>
 
-            <!-- Spring Retry (версия из Spring Boot BOM) -->
+            <!-- Spring Retry -->
             <dependency>
                 <groupId>org.springframework.retry</groupId>
                 <artifactId>spring-retry</artifactId>
-                <version>2.0.11</version>
+                <version>${spring-retry.version}</version>
             </dependency>
 
             <!-- Внутренние модули проекта -->
