@@ -23,11 +23,10 @@ spring:
 eureka:
   client:
     serviceUrl:
-      # URL Eureka Server для регистрации и получения реестра сервисов
       defaultZone: http://localhost:8761/eureka/
+    healthcheck:
+      enabled: true
   instance:
-    # Использовать IP-адрес вместо hostname
-    preferIpAddress: true
+    prefer-ip-address: true
     hostname: localhost
-    # Уникальный идентификатор экземпляра: имя-сервиса + случайная строка
-    instance-id: "${spring.application.name}:${random.value}"
+    instance-id: "${spring.application.name}:${spring.application.instance_id:${random.value}}"
