@@ -30,12 +30,23 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Версии зависимостей -->
-        <lombok.version>1.18.38</lombok.version>
-        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
-        <mapstruct.version>1.6.3</mapstruct.version>
-        <spring-cloud-dependencies.version>2024.0.1</spring-cloud-dependencies.version>
-        <querydsl.version>5.1.0</querydsl.version>
-        <postgres.version>42.7.7</postgres.version>
+        <lombok.version>1.18.38</lombok.version>                                         <!-- Lombok для генерации кода -->
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>       <!-- Мост Lombok + MapStruct -->
+        <mapstruct.version>1.6.3</mapstruct.version>                                     <!-- Маппинг DTO ↔ Entity (поддержка Java 21) -->
+        <spring-cloud-dependencies.version>2024.0.1</spring-cloud-dependencies.version>  <!-- Spring Cloud BOM -->
+        <querydsl.version>5.1.0</querydsl.version>                                       <!-- динамические JPA-запросы -->
+        <postgres.version>42.7.7</postgres.version>                                      <!-- JDBC-драйвер PostgreSQL -->
+        <h2.version>2.3.232</h2.version>                                                 <!-- H2 Database для тестов -->
+        <jakarta-persistence.version>3.1.0</jakarta-persistence.version>                 <!-- Jakarta Persistence API -->
+        <spring-retry.version>2.0.11</spring-retry.version>                              <!-- Spring Retry -->
+
+        <!-- Версии для Avro/Protobuf/gRPC плагинов и зависимостей -->
+        <avro.version>1.11.3</avro.version>                                        <!-- бинарная сериализация, совместима с Kafka -->
+        <avro-maven-plugin.version>1.11.3</avro-maven-plugin.version>               <!-- генерация Java-классов из .avdl схем -->
+        <kafka-clients.version>3.6.1</kafka-clients.version>                        <!-- Kafka-клиент, совместим с брокером 3.6 -->
+        <protobuf.version>3.23.4</protobuf.version>                                 <!-- Protocol Buffers (совместим с gRPC) -->
+        <protobuf-plugin.version>2.4.0</protobuf-plugin.version>                    <!-- плагин io.github.ascopes для генерации .proto → Java -->
+        <grpc.version>1.63.0</grpc.version>                                         <!-- gRPC фреймворк -->
 
         <!-- Версии плагинов -->
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
@@ -53,7 +64,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Lombok + MapStruct -->
+            <!-- Lombok + MapStruct: генерация boilerplate-кода и маппинг DTO ↔ Entity -->
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
@@ -75,14 +86,14 @@
                 <version>${mapstruct.version}</version>
             </dependency>
 
-            <!-- Базы данных -->
+            <!-- Базы данных: PostgreSQL JDBC-драйвер -->
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
                 <version>${postgres.version}</version>
             </dependency>
 
-            <!-- QueryDSL (динамические запросы) -->
+            <!-- QueryDSL: типобезопасные динамические JPA-запросы -->
             <dependency>
                 <groupId>com.querydsl</groupId>
                 <artifactId>querydsl-jpa</artifactId>
@@ -96,25 +107,25 @@
                 <version>${querydsl.version}</version>
             </dependency>
 
-            <!-- Jakarta Persistence API (версия из Spring Boot BOM) -->
+            <!-- Jakarta Persistence API -->
             <dependency>
                 <groupId>jakarta.persistence</groupId>
                 <artifactId>jakarta.persistence-api</artifactId>
-                <version>3.1.0</version>
+                <version>${jakarta-persistence.version}</version>
             </dependency>
 
-            <!-- H2 база данных (версия из Spring Boot BOM) -->
+            <!-- H2 база данных -->
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
-                <version>2.3.232</version>
+                <version>${h2.version}</version>
             </dependency>
 
-            <!-- Spring Retry (версия из Spring Boot BOM) -->
+            <!-- Spring Retry -->
             <dependency>
                 <groupId>org.springframework.retry</groupId>
                 <artifactId>spring-retry</artifactId>
-                <version>2.0.11</version>
+                <version>${spring-retry.version}</version>
             </dependency>
 
             <!-- Внутренние модули проекта -->
@@ -141,7 +152,7 @@
                 <version>2.6.0</version>
             </dependency>
 
-            <!-- GRPC зависимости (для stats-server) -->
+            <!-- gRPC стартеры: интеграция gRPC со Spring Boot (универсальный + сервер) -->
             <dependency>
                 <groupId>net.devh</groupId>
                 <artifactId>grpc-spring-boot-starter</artifactId>
@@ -149,28 +160,39 @@
             </dependency>
             <dependency>
                 <groupId>net.devh</groupId>
-                <artifactId>grpc-server-spring-boot-starter</artifactId>
+                <artifactId>grpc-client-spring-boot-starter</artifactId>
                 <version>3.1.0.RELEASE</version>
             </dependency>
             <dependency>
+                <groupId>net.devh</groupId>
+                <artifactId>grpc-server-spring-boot-starter</artifactId>
+                <version>3.1.0.RELEASE</version>
+            </dependency>
+
+            <!-- gRPC: заглушки и protobuf-сериализация для клиента/сервера -->
+            <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-stub</artifactId>
-                <version>1.54.1</version>
+                <version>${grpc.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-protobuf</artifactId>
-                <version>1.54.1</version>
+                <version>${grpc.version}</version>
             </dependency>
+
+            <!-- Avro: бинарная сериализация с поддержкой схем (для Kafka-сообщений) -->
             <dependency>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
-                <version>1.11.3</version>
+                <version>${avro.version}</version>
             </dependency>
+
+            <!-- Kafka: низкоуровневый клиент для продюсеров/консьюмеров -->
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-clients</artifactId>
-                <version>3.6.1</version>
+                <version>${kafka-clients.version}</version>   <!-- версия Kafka-клиента, совместима с брокером 3.6 -->
             </dependency>
         </dependencies>
     </dependencyManagement>

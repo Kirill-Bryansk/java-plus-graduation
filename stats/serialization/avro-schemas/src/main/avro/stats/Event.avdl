@@ -1,0 +1,13 @@
+@namespace("ru.practicum.ewm.stats.avro")
+protocol EventProtocol {
+	/*
+     * Mетаданные события: ID, категория, дата проведения.
+     * Отправляется коллектором при первом взаимодействии с пользователем с событием.
+     * Нужен анализатору что бы хранить категорию и дату для фильтрации рекомендаций
+     */
+	record EventAvro {
+		long id;
+		long categoryId;
+		timestamp_ms eventDate;
+	}
+}

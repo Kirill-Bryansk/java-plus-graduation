@@ -1,10 +1,14 @@
 <configuration>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%highlight(%level) %logger{3} - %msg%n</pattern>
-            -- [%logger{1}]
+            <pattern>%d{HH:mm:ss} %highlight(%-5level) [%thread] %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
+
+    <logger name="ru.yandex.practicum" level="DEBUG"/>
+    <logger name="org.springframework.cloud.netflix.eureka" level="INFO"/>
+    <logger name="com.netflix.discovery" level="INFO"/>
+
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
     </root>

@@ -13,11 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.service.CategoryService;
-import ru.practicum.client.RequestClient;
-import ru.practicum.client.StatsClientService;
-import ru.practicum.client.UserClient;
-import ru.practicum.dto.ResponseStatDto;
-import ru.practicum.dto.StatDto;
+import ru.practicum.ewm.stats.client.ActionType;
+import ru.practicum.ewm.stats.client.AnalyzerGrpcClient;
+import ru.practicum.ewm.stats.client.CollectorGrpcClient;
+import ru.practicum.grpc.RequestClient;
+import ru.practicum.grpc.UserClient;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.enums.event.EventState;
 import ru.practicum.errors.exceptions.ConditionsNotMetException;
@@ -38,6 +38,13 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Реализация сервиса событий.
+ * Выполняет CRUD-операции с событиями, фильтрацию через QueryDSL,
+ * взаимодействие со stats-service для учёта просмотров,
+ * с rating-service для получения рейтингов,
+ * и с user-service для получения данных пользователей.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -47,39 +54,52 @@ public class EventServiceImpl implements EventService {
     private final CategoryService categoryService;
     private final EventMapper eventMapper;
     private final UserClient userClient;
-    private final StatsClientService statsClient;
     private final RequestClient requestClient;
+    // gRPC-клиенты для recommendation-сервисов
+    private final CollectorGrpcClient collectorClient;
+    private final AnalyzerGrpcClient analyzerClient;
 
     @Override
     @Transactional
     public EventFullDto add(EventNewDto newEvent, long userId) {
+        log.info("Создание события: userId={}, annotation={}", userId, newEvent.getAnnotation());
         LocalDateTime eventDate = newEvent.getEventDate();
         if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
             throw new ForbiddenException("Начало события ранее, чем через два часа: " + eventDate);
         }
         UserShortDto user = userClient.getById(userId);
         Event event = saveEvent(newEvent, userId);
-        return eventMapper.toFullDto(event, user);
+        EventFullDto result = eventMapper.toFullDto(event, user);
+        log.info("Событие создано с id={}, состояние={}", result.getId(), result.getState());
+        return result;
     }
 
     @Override
     public List<EventShortDto> getAllByUser(long userId, Pageable pageable) {
+        log.info("Получение событий пользователя: userId={}, from={}, size={}", userId, pageable.getPageNumber(), pageable.getPageSize());
         List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable);
         events = applyConfirmedRequestsToEvents(events);
-        return mapToShortDtos(events);
+        List<EventShortDto> result = mapToShortDtos(events);
+        log.info("Получено {} событий для userId={}", result.size(), userId);
+        return result;
     }
 
     @Override
     public EventFullDto getByIdPrivate(long eventId, long userId) {
+        log.info("Получение события (приватное): eventId={}, userId={}", eventId, userId);
         Event event = findByIdAndInitiatorId(eventId, userId);
         applyConfirmedRequestsToEvent(event);
         UserShortDto user = userClient.getById(userId);
-        return eventMapper.toFullDto(event, user);
+        EventFullDto result = eventMapper.toFullDto(event, user);
+        log.info("Событие найдено: id={}, состояние={}", result.getId(), result.getState());
+        return result;
     }
 
     @Override
     @Transactional
     public EventFullDto updatePrivate(long userId, long eventId, EventUserUpdateDto eventUpdate) {
+        log.info("Обновление события (приватное): userId={}, eventId={}, stateAction={}",
+                userId, eventId, eventUpdate.getStateAction());
         Event event = findByIdAndInitiatorId(eventId, userId);
 
         boolean isPublished = event.getState() == EventState.PUBLISHED;
@@ -112,13 +132,15 @@ public class EventServiceImpl implements EventService {
         Event updated = eventMapper.toEventFromEventUserUpdateDto(eventUpdate, event);
         updated = eventRepository.save(updated);
         UserShortDto user = userClient.getById(updated.getInitiatorId());
-
-        return eventMapper.toFullDto(updated, user);
+        EventFullDto result = eventMapper.toFullDto(updated, user);
+        log.info("Событие обновлено: id={}, новое состояние={}", result.getId(), result.getState());
+        return result;
     }
 
     @Override
     @Transactional
     public EventFullDto updateAdmin(long eventId, EventAdminUpdateDto eventUpdate) {
+        log.info("Обновление события (админ): eventId={}, stateAction={}", eventId, eventUpdate.getStateAction());
         Event event = findById(eventId);
 
         EventAdminUpdateDto.StateAction stateAction = eventUpdate.getStateAction();
@@ -138,11 +160,15 @@ public class EventServiceImpl implements EventService {
         Event updated = eventMapper.toEventFromEventAdminUpdateDto(eventUpdate, event);
         UserShortDto user = userClient.getById(updated.getInitiatorId());
         updated = eventRepository.save(updated);
-        return eventMapper.toFullDto(updated, user);
+        EventFullDto result = eventMapper.toFullDto(updated, user);
+        log.info("Событие обновлено (админ): id={}, новое состояние={}", result.getId(), result.getState());
+        return result;
     }
 
     @Override
     public List<EventFullDto> getAllByAdmin(EventAdminParam params) {
+        log.info("Получение событий (админ): users={}, states={}, categories={}, rangeStart={}, rangeEnd={}",
+                params.getUsers(), params.getStates(), params.getCategories(), params.getRangeStart(), params.getRangeEnd());
         List<Long> users = params.getUsers();
         BooleanExpression byUsers = (users != null && !users.isEmpty())
                 ? QEvent.event.initiatorId.in(users) : null;
@@ -166,11 +192,15 @@ public class EventServiceImpl implements EventService {
 
         events = applyConfirmedRequestsToEvents(events);
 
-        return eventMapper.toEventFullDtoList(events);
+        List<EventFullDto> result = mapToFullDtos(events);
+        log.info("Получено {} событий (админ)", result.size());
+        return result;
     }
 
     @Override
     public List<EventShortDto> getAllPublic(EventPublicParam params) {
+        log.info("Получение публичных событий: text={}, categories={}, paid={}, onlyAvailable={}, sort={}",
+                params.getText(), params.getCategories(), params.getPaid(), params.getOnlyAvailable(), params.getSort());
         if (params.getRangeEnd() != null && params.getRangeStart() != null &&
                 params.getRangeEnd().isBefore(params.getRangeStart())) {
             throw new ValidationException("Параметр rangeEnd должен быть позже rangeStart");
@@ -207,27 +237,45 @@ public class EventServiceImpl implements EventService {
             events = filterByAvailability(events);
         }
 
-        return mapToShortDtos(events);
+        List<EventShortDto> result = mapToShortDtos(events);
+
+        // Запрашиваем рейтинги через gRPC Analyzer
+        applyRatings(events, result);
+
+        log.info("Получено {} публичных событий", result.size());
+        return result;
     }
 
     @Override
-    public EventFullDto getByIdPublic(long eventId, StatDto statDto) {
+    public EventFullDto getByIdPublic(long eventId, long userId) {
+        log.info("Получение публичного события: eventId={}, userId={}", eventId, userId);
         Event event = findById(eventId);
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new NotFoundException("Событие с id: " + eventId + " не найдено");
         }
         applyConfirmedRequestsToEvent(event);
-        UserShortDto user = userClient.getById(event.getInitiatorId());
-        EventFullDto eventFullDto = eventMapper.toFullDto(event, user);
-        List<ResponseStatDto> stats = statsClient.getStats(LocalDateTime.now().minusMonths(1), LocalDateTime.now(),
-                List.of(statDto.getUri()), true);
 
-        if (!stats.isEmpty()) {
-            eventFullDto.setViews(stats.getFirst().getHits());
+        // Отправляем просмотр через gRPC Collector
+        collectorClient.sendUserAction(userId, eventId, ActionType.ACTION_VIEW);
+
+        UserShortDto user;
+        try {
+            user = userClient.getById(event.getInitiatorId());
+        } catch (Exception e) {
+            log.warn("Не удалось получить пользователя {}: {}", event.getInitiatorId(), e.getMessage());
+            user = null;
         }
+        EventFullDto eventFullDto = eventMapper.toFullDto(event, user);
 
-        statsClient.hit(statDto);
+        // Запрашиваем рейтинг через gRPC Analyzer
+        analyzerClient.getInteractionsCount(List.of(eventId))
+                .findFirst()
+                .ifPresent(r -> {
+                    event.setRating(r.getScore());
+                    eventFullDto.setRating(r.getScore());
+                });
 
+        log.info("Публичное событие возвращено: id={}, rating={}", eventFullDto.getId(), eventFullDto.getRating());
         return eventFullDto;
     }
 
@@ -265,32 +313,6 @@ public class EventServiceImpl implements EventService {
         return PageRequest.of(from, size, sort);
     }
 
-    private List<EventShortDto> applyViewsToEvents(List<EventShortDto> events) {
-        Map<String, EventShortDto> uriToEventMap = events.stream()
-                .collect(Collectors.toMap(
-                        event -> UriComponentsBuilder.fromUriString("/events")
-                                .pathSegment(String.valueOf(event.getId()))
-                                .toUriString(),
-                        Function.identity()
-                ));
-
-        List<ResponseStatDto> stats = statsClient.getStats(
-                LocalDateTime.now().minusMonths(1),
-                LocalDateTime.now(),
-                new ArrayList<>(uriToEventMap.keySet()),
-                true
-        );
-
-        for (ResponseStatDto stat : stats) {
-            EventShortDto dto = uriToEventMap.get(stat.getUri());
-            if (dto != null) {
-                dto.setViews(stat.getHits());
-            }
-        }
-
-        return new ArrayList<>(uriToEventMap.values());
-    }
-
     private void handlePublishEvent(Event event, EventAdminUpdateDto eventUpdate) {
         if (!event.getState().equals(EventState.PENDING)) {
             throw new ConditionsNotMetException("Нельзя опубликовать событие, не находящееся в состоянии ожидания");
@@ -316,15 +338,28 @@ public class EventServiceImpl implements EventService {
 
     private List<Event> applyConfirmedRequestsToEvents(List<Event> events) {
         List<Long> eventsIds = events.stream().map(Event::getId).toList();
-        Map<Long, Integer> requestsByEventIds = requestClient.getCountConfirmedRequestsByEventIds(eventsIds);
+        Map<Long, Integer> requestsByEventIds;
+        try {
+            requestsByEventIds = requestClient.getCountConfirmedRequestsByEventIds(eventsIds);
+        } catch (Exception e) {
+            log.warn("Не удалось получить количество подтверждённых заявок: {}", e.getMessage());
+            requestsByEventIds = new java.util.HashMap<>();
+        }
 
+        final Map<Long, Integer> confirmedRequestsMap = requestsByEventIds;
         return events.stream().peek(event ->
-                event.setConfirmedRequests(requestsByEventIds.getOrDefault(event.getId(), 0))
+                event.setConfirmedRequests(confirmedRequestsMap.getOrDefault(event.getId(), 0))
         ).collect(Collectors.toList());
     }
 
     private void applyConfirmedRequestsToEvent(Event event) {
-        int confirmed = requestClient.getCountConfirmedRequestsByEventId(event.getId());
+        int confirmed;
+        try {
+            confirmed = requestClient.getCountConfirmedRequestsByEventId(event.getId());
+        } catch (Exception e) {
+            log.warn("Не удалось получить количество подтверждённых заявок: {}", e.getMessage());
+            confirmed = 0;
+        }
         event.setConfirmedRequests(confirmed);
     }
 
@@ -336,9 +371,56 @@ public class EventServiceImpl implements EventService {
 
     private List<EventShortDto> mapToShortDtos(List<Event> events) {
         Set<Long> usersIds = events.stream().map(Event::getInitiatorId).collect(Collectors.toSet());
-        Map<Long, UserShortDto> usersByIds = userClient.getAllUsersByIds(new ArrayList<>(usersIds));
-        List<EventShortDto> eventShortDtos = eventMapper.toEventShortDtoList(events, usersByIds);
-        eventShortDtos = applyViewsToEvents(eventShortDtos);
+        Map<Long, UserShortDto> usersByIds;
+        try {
+            usersByIds = userClient.getAllUsersByIds(new ArrayList<>(usersIds));
+        } catch (Exception e) {
+            log.warn("Не удалось получить пользователей: {}", e.getMessage());
+            usersByIds = new java.util.HashMap<>();
+        }
+        final Map<Long, UserShortDto> usersMap = usersByIds;
+        List<EventShortDto> eventShortDtos = eventMapper.toEventShortDtoList(events, usersMap);
         return eventShortDtos;
+    }
+
+    private List<EventFullDto> mapToFullDtos(List<Event> events) {
+        Set<Long> usersIds = events.stream().map(Event::getInitiatorId).collect(Collectors.toSet());
+        Map<Long, UserShortDto> usersByIds;
+        try {
+            usersByIds = userClient.getAllUsersByIds(new ArrayList<>(usersIds));
+        } catch (Exception e) {
+            log.warn("Не удалось получить пользователей: {}", e.getMessage());
+            usersByIds = new java.util.HashMap<>();
+        }
+        final Map<Long, UserShortDto> usersMap = usersByIds;
+        List<EventFullDto> result = eventMapper.toEventFullDtoList(events);
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            EventFullDto dto = result.get(i);
+            dto.setInitiator(usersMap.get(event.getInitiatorId()));
+        }
+        return result;
+    }
+
+    /**
+     * Запросить рейтинги мероприятий через gRPC Analyzer и применить их к DTO.
+     */
+    private void applyRatings(List<Event> events, List<EventShortDto> dtos) {
+        List<Long> eventIds = events.stream().map(Event::getId).toList();
+        if (eventIds.isEmpty()) return;
+
+        Map<Long, Double> ratingById = analyzerClient.getInteractionsCount(eventIds)
+                .collect(Collectors.toMap(
+                        r -> r.getEventId(),
+                        r -> r.getScore()
+                ));
+
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            EventShortDto dto = dtos.get(i);
+            double rating = ratingById.getOrDefault(event.getId(), 0.0);
+            event.setRating(rating);
+            dto.setRating(rating);
+        }
     }
 }

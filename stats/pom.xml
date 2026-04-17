@@ -12,13 +12,10 @@
     <artifactId>stats</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>stats-interaction-api</module>
         <module>stats-client</module>
-        <module>stats-server</module>
+        <module>serialization</module>
+        <module>aggregator</module>
+        <module>collector</module>
+        <module>analyzer</module>
     </modules>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
 </project>

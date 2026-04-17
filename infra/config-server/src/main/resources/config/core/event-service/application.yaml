@@ -2,6 +2,11 @@ server:
   port: 0
 
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:6542/ewmdb
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: none
@@ -9,24 +14,34 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: core-events
+        default_schema: core_events
   sql:
     init:
-      mode: always
+      mode: always  # Автоматически выполняет schema.sql при старте
   http:
     logging:
       include-headers: true
-  datasource:
-    driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:6542/ewmdb
-    username: user
-    password: password
 
 logging:
   level:
     org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: trace
+    org.hibernate.orm.jdbc.bind: TRACE
 
+# Настройки логирования обработчика ошибок
 api:
   log:
     stacktrace: true
+
+# gRPC-клиенты для recommendation-сервисов
+grpc:
+  client:
+    collector:
+      address: 'discovery:///collector'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+    analyzer:
+      address: 'discovery:///analyzer'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext

@@ -1,22 +1,33 @@
 spring:
+  # Имя сервиса для регистрации в Eureka и поиска в Config Server
   application:
     name: event-service
+  # Подключение к внешнему серверу конфигурации (Spring Cloud Config)
   config:
     import: "configserver:"
   cloud:
     config:
       discovery:
+        # Включить поиск Config Server через Eureka (вместо прямого URL)
         enabled: true
         serviceId: config-server
+      # Завершить запуск с ошибкой, если Config Server недоступен
       fail-fast: true
       retry:
+        # Использовать случайную задержку между попытками (избегает thundering herd)
         useRandomPolicy: true
+        # Максимальный интервал между повторами (мс)
         max-interval: 6000
+
+# Настройки клиента Eureka для регистрации и обнаружения сервисов
 eureka:
   client:
     serviceUrl:
+      # URL Eureka Server для регистрации и получения реестра сервисов
       defaultZone: http://localhost:8761/eureka/
+    healthcheck:
+      enabled: true  # Eureka ждёт реального статуса от /actuator/health
   instance:
-    preferIpAddress: true
+    prefer-ip-address: true
     hostname: localhost
-    instance-id: "${spring.application.name}:${random.value}"
+    instance-id: "${spring.application.name}:${spring.application.instance_id:${random.value}}"

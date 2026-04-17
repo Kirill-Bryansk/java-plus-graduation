@@ -20,3 +20,7 @@ target/
 *.iws
 *.iml
 *.ipr
+
+### Tester ###
+stats/tester/
+stats/tester

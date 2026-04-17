@@ -1,32 +1,35 @@
-server:
-  port: 0
-
+# Конфигурация request-service
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:6542/ewmdb
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
   jpa:
     hibernate:
       ddl-auto: none
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: core-requests
-  sql:
-    init:
-      mode: always
-  http:
-    logging:
-      include-headers: true
-  datasource:
-    driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:6542/ewmdb
-    username: user
-    password: password
+    defer-datasource-initialization: true
+server:
+  port: 0
 
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: trace
-
+# Настройки логирования ошибок (обязательно для ErrorHandler)
 api:
   log:
     stacktrace: true
+
+# gRPC-клиент для отправки регистраций в Collector
+grpc:
+  client:
+    collector:
+      address: 'discovery:///collector'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext

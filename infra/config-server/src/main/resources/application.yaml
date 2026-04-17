@@ -1,18 +1,28 @@
 spring:
+  # Имя сервиса конфигурации для регистрации в Eureka
   application:
     name: config-server
+  # Используем native-профиль — конфигурации хранятся в classpath
   profiles:
     active: native
   cloud:
     config:
       server:
         native:
+          # Пути поиска конфигурационных файлов:
+          # stats/{application}  — конфигурации для stats-сервисов
+          # infra/{application}  — конфигурации для infra-сервисов (gateway и др.)
+          # core/{application}   — конфигурации для core-сервисов (event, user, rating, request)
           searchLocations:
             - classpath:config/stats/{application}
             - classpath:config/infra/{application}
             - classpath:config/core/{application}
+
+# Порт 0 — случайный порт при запуске (для параллельного запуска нескольких экземпляров)
 server:
   port: 0
+
+# Регистрация в Eureka для обнаружения другими сервисами
 eureka:
   client:
     serviceUrl:

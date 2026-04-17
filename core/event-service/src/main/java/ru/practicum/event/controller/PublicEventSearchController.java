@@ -14,6 +14,11 @@ import ru.practicum.event.service.EventSearchService;
 
 import java.util.List;
 
+/**
+ * Публичный контроллер поиска событий по рейтингу.
+ * Предоставляет endpoint для получения самых популярных событий
+ * на основе лайков из rating-service.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/events/top-liked")
@@ -22,9 +27,17 @@ import java.util.List;
 public class PublicEventSearchController {
     EventSearchService eventSearchService;
 
+    /**
+     * Получить список самых популярных событий по количеству лайков.
+     * Вызывает rating-service через Feign для получения рейтингов.
+     *
+     * @param limit максимальное количество событий (по умолчанию 10)
+     * @return список EventShortDto, отсортированный по рейтингу
+     */
     @GetMapping
     public List<EventShortDto> searchByRating(
             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit) {
+        log.debug("GET: Запрос на поиск популярных событий: limit={}", limit);
         EventSearchByRatingParam param = new EventSearchByRatingParam();
         param.setLimit(limit);
         return eventSearchService.searchMostLikedEvents(param);

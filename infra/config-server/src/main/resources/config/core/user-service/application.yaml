@@ -1,21 +1,21 @@
 server:
-  port: 0
+  port: 0   # случайный порт для Tomcat (чтобы не конфликтовать с другими сервисами)
 
 spring:
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: none   # не менять схему БД автоматически
     properties:
       hibernate:
-        format_sql: true
+        format_sql: true           # красивое форматирование SQL (но оно не будет выводиться, если уровень OFF)
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: core-users
+        default_schema: core-users # схема БД
   sql:
     init:
-      mode: always
+      mode: always    # всегда выполнять schema.sql при запуске
   http:
     logging:
-      include-headers: true
+      include-headers: true   # логировать заголовки HTTP (для отладки)
   datasource:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://localhost:6542/ewmdb
@@ -24,9 +24,13 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: trace
+    # Уровень логирования пакета (DEBUG — видно логи, INFO — только основные)
+    ru.practicum: DEBUG
+
+    # ---- Логи Hibernate (по умолчанию отключены, раскомментируй при необходимости) ----
+    # org.hibernate.SQL: DEBUG          # выводит SQL-запросы (значение: DEBUG или OFF)
+    # org.hibernate.orm.jdbc.bind: TRACE # выводит параметры запросов (значение: TRACE или OFF)
 
 api:
   log:
-    stacktrace: true
+    stacktrace: true   # показывать полный stacktrace в ответах ошибок (только для разработки)

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>ru.practicum</groupId>
+        <artifactId>serialization</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <!-- Модуль генерации Java-классов из Protocol Buffers (.proto) схем.
+         Содержит описания gRPC-сообщений и сервисов для Collector и Analyzer.
+         Результат генерации используют: collector, analyzer, stats-client. -->
+    <artifactId>proto-schemas</artifactId>
+
+    <dependencies>
+        <!-- gRPC: заглушки (stub) для клиент/сервер вызовов.
+             Сгенерированные классы позволяют вызывать удалённые методы как локальные Java-методы. -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+        </dependency>
+
+        <!-- gRPC: protobuf-сериализация для сообщений.
+             Обеспечивает маршалинг/демаршалинг Protobuf-сообщений в бинарный формат. -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+        </dependency>
+
+        <!-- Проблема совместимости: gRPC-генератор (protoc-gen-grpc-java) генерирует
+             аннотации из javax.annotation, а Spring Boot 3 использует Jakarta EE.
+             Добавляем javax-совместимую зависимость как optional, чтобы избежать конфликтов.
+             Подробнее: https://github.com/grpc/grpc-java/issues/9179 -->
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>1.3.5</version>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Компилятор: наследует настройки Lombok + MapStruct annotation processor из root pom -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+
+            <!-- Protobuf Maven Plugin (io.github.ascopes):
+                 Сканирует src/main/protobuf/**/*.proto и генерирует:
+                 1) Java-классы сообщений (Message → Java Builder/POJO)
+                 2) gRPC-заглушки (service → BlockingStub, FutureStub, ImplBase)
+                 Версии protoc и grpc задаются через свойства из root pom.xml. -->
+            <plugin>
+                <groupId>io.github.ascopes</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>${protobuf-plugin.version}</version>
+
+                <configuration>
+                    <!-- Версия protoc-компилятора (совместима с gRPC 1.63) -->
+                    <protocVersion>${protobuf.version}</protocVersion>
+
+                    <!-- Генератор gRPC-заглушек: protoc-gen-grpc-java.
+                         Без него генерируются только классы сообщений, но не сервисов. -->
+                    <binaryMavenPlugins>
+                        <binaryMavenPlugin>
+                            <groupId>io.grpc</groupId>
+                            <artifactId>protoc-gen-grpc-java</artifactId>
+                            <version>${grpc.version}</version>
+                        </binaryMavenPlugin>
+                    </binaryMavenPlugins>
+                </configuration>
+
+                <!-- Привязка к фазе generate-sources: генерация происходит до компиляции -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Build Helper Maven Plugin:
+                 Добавляет сгенерированные protobuf-классы в compile classpath.
+                 Плагин protobuf-maven-plugin кладёт файлы в generated-sources/protobuf,
+                 и без этой настройки Maven их не увидит при компиляции. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <!-- ВАЖНО: путь должен совпадать с выходной директорией protobuf-плагина -->
+                                <source>${project.build.directory}/generated-sources/protobuf</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

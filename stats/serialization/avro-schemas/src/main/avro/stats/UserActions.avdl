@@ -1,0 +1,21 @@
+@namespace("ru.practicum.ewm.stats.avro")
+protocol UserActionProtocol {
+
+  /**
+   * Тип действия пользователя.
+   * Имена совпадают с Proto-схемой (ACTION_VIEW, ACTION_REGISTER, ACTION_LIKE),
+   * чтобы можно было использовать valueOf() без лишних мапперов.
+   */
+  enum ActionTypeAvro {
+    ACTION_VIEW,
+    ACTION_REGISTER,
+    ACTION_LIKE
+  }
+
+  record UserActionAvro {
+    long userId;                // ID пользователя
+    long eventId;               // ID мероприятия
+    ActionTypeAvro actionType;  // Тип действия
+    timestamp_ms timestamp;     // Временная метка
+  }
+}

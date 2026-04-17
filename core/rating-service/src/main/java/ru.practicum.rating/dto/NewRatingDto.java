@@ -6,6 +6,7 @@ import ru.practicum.rating.mark.Mark;
 
 @Getter
 @Setter
+@ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

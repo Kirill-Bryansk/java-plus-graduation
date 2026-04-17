@@ -9,6 +9,11 @@ import ru.practicum.request.service.RequestInternalService;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Внутренний контроллер заявок для вызовов между сервисами (Feign).
+ * Используется event-service для получения количества подтверждённых заявок
+ * при отображении событий и поиске.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/internal/requests")
@@ -17,21 +22,29 @@ public class InternalRequestController implements RequestOperations {
 
     private final RequestInternalService requestService;
 
+    /**
+     * Получить количество подтверждённых заявок для списка событий.
+     *
+     * @param eventsIds список идентификаторов событий
+     * @return Map<event_id, confirmed_count>
+     */
     @Override
     @PostMapping("/count")
     public Map<Long, Integer> getCountConfirmedRequestsByEventIds(@RequestBody List<Long> eventsIds) {
-        log.info("Посчитать запросы на участие в мероприятиях: {}", eventsIds);
-        Map<Long, Integer> requestsCountByEvent = requestService.getCountConfirmedRequestsByEventIds(eventsIds);
-        log.info("Посчитанные запросы: {}", requestsCountByEvent);
-        return requestsCountByEvent;
+        log.debug("POST /internal/requests/count: подсчёт подтверждённых заявок для eventIds={}", eventsIds);
+        return requestService.getCountConfirmedRequestsByEventIds(eventsIds);
     }
 
+    /**
+     * Получить количество подтверждённых заявок для одного события.
+     *
+     * @param eventId идентификатор события
+     * @return количество подтверждённых заявок
+     */
     @Override
     @GetMapping("/count/{eventId}")
     public int getCountConfirmedRequestsByEventId(@PathVariable Long eventId) {
-        log.info("Посчитать запросы на участие в мероприятии: {}", eventId);
-        int requestCount = requestService.getCountConfirmedRequestsByEventId(eventId);
-        log.info("Посчитанные запросы для мероприятия {}: {}", eventId, requestCount);
-        return requestCount;
+        log.debug("GET /internal/requests/count/{}: подсчёт подтверждённых заявок", eventId);
+        return requestService.getCountConfirmedRequestsByEventId(eventId);
     }
 }

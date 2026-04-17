@@ -1,0 +1,16 @@
+@namespace("ru.practicum.ewm.stats.avro")
+protocol EventSimilarityProtocol {
+	import idl "Event.avdl";
+
+	/* Эта запись отражает сходство между двумя мероприятиями.
+	Она содержит упорядоченные идентификаторы мероприятий,
+	оценку сходства и метку времени.
+	Значение поля eventA должна идти перед eventB */
+	record EventSimilarityAvro {
+		long eventA;
+		long eventB;
+		double score;
+		timestamp_ms timestamp;
+	}
+}
+

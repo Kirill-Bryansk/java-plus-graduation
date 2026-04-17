@@ -1,5 +1,6 @@
 package ru.practicum.request.controller;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,19 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+/**
+ * Глобальный обработчик исключений для request-service.
+ * Перехватывает бизнес-исключения и преобразует их в стандартный ApiError.
+ *
+ * NotFoundException  → 404
+ * ValidationException → 400
+ * DataAlreadyInUseException → 409
+ * ForbiddenException → 403
+ * ConditionsNotMetException → 409
+ * MethodArgumentNotValidException → 400
+ * MissingServletRequestParameterException → 400
+ * Throwable (fallback) → 500
+ */
 @RestControllerAdvice
 @Slf4j
 public class ErrorHandler {
@@ -100,6 +114,20 @@ public class ErrorHandler {
         String stackTrace = isStackTrace ? sw.toString() : "Stack trace not allowed by property";
         return new ApiError(stackTrace, e.getMessage(),
                 "Incorrectly made request.", HttpStatus.BAD_REQUEST, LocalDateTime.now().format(formatter));
+    }
+
+    /**
+     * Обработка FeignException (ошибка вызова другого сервиса) → 500.
+     */
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handleFeignException(final FeignException e) {
+        log.error("500 Feign error: {} (status {})", e.getMessage(), e.status());
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        String stackTrace = isStackTrace ? sw.toString() : "Stack trace not allowed by property";
+        return new ApiError(stackTrace, e.getMessage(), "Internal service error.",
+                HttpStatus.INTERNAL_SERVER_ERROR, LocalDateTime.now().format(formatter));
     }
 
     @ExceptionHandler

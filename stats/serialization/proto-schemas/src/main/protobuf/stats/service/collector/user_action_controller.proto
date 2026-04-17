@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package stats.service.collector;
+
+import "google/protobuf/empty.proto";
+import "stats/message/user_action.proto";
+
+option java_multiple_files = true;
+option java_package = "ru.practicum.ewm.stats.proto.collector";
+
+/**
+ * Сервис Collector: принимает действия пользователей по gRPC.
+ * Конвертирует UserActionProto в Avro и отправляет в Kafka-топик stats.user-actions.v1.
+ */
+service UserActionController {
+  /**
+   * Принять одно действие пользователя и записать в Kafka.
+   *
+   * @param request действие пользователя (user_id, event_id, action_type, timestamp)
+   * @return Empty — подтверждение успешной записи
+   */
+  rpc CollectUserAction(stats.message.event.UserActionProto)
+      returns (google.protobuf.Empty);
+}
